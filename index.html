@@ -1,0 +1,135 @@
+// ===== NUEVO WIDGET EN VIVO CON API =====
+const API_URL = "https://worldcup26.ir/get/game";
+
+function parsearAPI(data) {
+    let games = null;
+    if (Array.isArray(data)) {
+        games = data;
+    } else if (data.data && Array.isArray(data.data)) {
+        games = data.data;
+    } else if (data.games && Array.isArray(data.games)) {
+        games = data.games;
+    } else if (data.partidos && Array.isArray(data.partidos)) {
+        games = data.partidos;
+    } else {
+        for (let key in data) {
+            if (Array.isArray(data[key]) && data[key].length > 0) {
+                games = data[key];
+                break;
+            }
+        }
+    }
+
+    if (!games) {
+        console.error("No se encontró un array de partidos en la respuesta:", data);
+        return [];
+    }
+
+    return games.map(function(g) {
+        const local = g.local || g.home || g.equipo_local || g.team1 || "";
+        const visita = g.visita || g.away || g.equipo_visita || g.team2 || "";
+        const golL = g.golL !== undefined ? g.golL : (g.local_score !== undefined ? g.local_score : (g.home_score !== undefined ? g.home_score : ""));
+        const golV = g.golV !== undefined ? g.golV : (g.visita_score !== undefined ? g.visita_score : (g.away_score !== undefined ? g.away_score : ""));
+        let estado = g.estado || g.status || "";
+        if (estado === "live" || estado === "en vivo" || estado === "1") estado = "live";
+        else if (estado === "finished" || estado === "finalizado" || estado === "2") estado = "finished";
+        else estado = "unknown";
+
+        return {
+            local: local.toString(),
+            visita: visita.toString(),
+            golL: golL.toString(),
+            golV: golV.toString(),
+            estado: estado
+        };
+    });
+}
+
+async function obtenerPartidos() {
+    try {
+        const resp = await fetch(API_URL, { cache: 'no-store' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        const partidos = parsearAPI(data);
+        console.log("Partidos obtenidos:", partidos);
+        return partidos;
+    } catch (e) {
+        console.error("Error al obtener partidos:", e);
+        return null;
+    }
+}
+
+function ultimoFinished(partidos) {
+    const terminados = partidos.filter(function(p) { return p.estado === "finished"; });
+    return terminados.length ? terminados[terminados.length - 1] : null;
+}
+
+function tarjetaPartido(p, enVivo) {
+    const color = enVivo ? "#0f7a46" : "#64748b";
+    const fondo = enVivo ? "linear-gradient(135deg, #ecfdf5, #f0fdf4)" : "#f8fafc";
+    const badge = enVivo
+        ? '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>'
+        : '<span style="background:#e2e8f0;color:#475569;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">Finalizado</span>';
+
+    return `
+        <div style="
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid ${color};
+            background: ${fondo};
+            font-family: 'Segoe UI', sans-serif;
+        ">
+            <div style="text-align:right;">
+                <span style="font-weight:700; font-size:15px; color:#0f172a;">${escapeHtml(p.local)}</span>
+            </div>
+            <div style="text-align:center;">
+                <div style="font-size:28px; font-weight:800; color:${color}; letter-spacing:4px; line-height:1;">
+                    ${escapeHtml(p.golL)} - ${escapeHtml(p.golV)}
+                </div>
+                <div style="margin-top:5px;">${badge}</div>
+            </div>
+            <div style="text-align:left;">
+                <span style="font-weight:700; font-size:15px; color:#0f172a;">${escapeHtml(p.visita)}</span>
+            </div>
+        </div>`;
+}
+
+function renderWidget(partidos) {
+    const contenedor = document.getElementById('widget-en-vivo');
+    if (!contenedor) return;
+    const vivos = partidos.filter(function(p) { return p.estado === "live"; });
+
+    if (vivos.length) {
+        contenedor.innerHTML = vivos.map(function(p) { return tarjetaPartido(p, true); }).join("");
+        return;
+    }
+
+    const ultimo = ultimoFinished(partidos);
+    if (ultimo) {
+        contenedor.innerHTML = tarjetaPartido(ultimo, false);
+        return;
+    }
+
+    contenedor.innerHTML = '<p style="color:#64748b; font-size:13px; margin:0;">No hay partidos disponibles aún.</p>';
+}
+
+let intervaloActualizacion = null;
+
+async function actualizarWidget() {
+    const partidos = await obtenerPartidos();
+    if (partidos && partidos.length > 0) {
+        renderWidget(partidos);
+    } else {
+        document.getElementById('widget-en-vivo').innerHTML =
+            '<p style="color:#ef4444; font-size:13px; margin:0;">No se pudieron cargar los marcadores.</p>';
+    }
+}
+
+// Iniciar
+actualizarWidget();
+if (intervaloActualizacion) clearInterval(intervaloActualizacion);
+intervaloActualizacion = setInterval(actualizarWidget, 10000);
