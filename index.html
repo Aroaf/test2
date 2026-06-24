@@ -406,75 +406,63 @@
 </div>
 
 <script>
-// ===== NUEVO WIDGET EN VIVO CON API =====
-const API_URL = "https://worldcup26.ir/get/game";
+// ===== NUEVO WIDGET USANDO LA HOJA DE RESULTADOS OFICIALES =====
+// Usamos la misma URL del CSV que ya tienes definida más abajo
+const URL_RESULTADOS_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS49T7z8TqJVm0fFSXgApVwB3XB-h5S9nrkXr0NGe605vhmo0O_cBZG7_tZep1UTlna0kn1fJSa8Jx0/pub?gid=0&single=true&output=csv';
 
-function parsearAPI(data) {
-    let games = null;
-    if (Array.isArray(data)) {
-        games = data;
-    } else if (data.data && Array.isArray(data.data)) {
-        games = data.data;
-    } else if (data.games && Array.isArray(data.games)) {
-        games = data.games;
-    } else if (data.partidos && Array.isArray(data.partidos)) {
-        games = data.partidos;
-    } else {
-        for (let key in data) {
-            if (Array.isArray(data[key]) && data[key].length > 0) {
-                games = data[key];
-                break;
-            }
-        }
-    }
+// Esta función convierte una fila del CSV (array de strings) en un objeto partido
+function convertirFilaAPartido(fila) {
+    // Según la estructura de tu hoja (vista en el JSON):
+    // 0: ID_PARTIDO, 1: golLocal, 2: golVisita, 3: Grupo, 4: (no usado), 5: Local, 6: "-", 7: Visita, 8: Estado
+    const id = fila[0] || '';
+    const golLocal = fila[1] !== undefined && fila[1] !== '' ? fila[1] : '';
+    const golVisita = fila[2] !== undefined && fila[2] !== '' ? fila[2] : '';
+    const local = fila[5] || '';
+    const visita = fila[7] || '';
+    let estado = fila[8] || '';
+    // Normalizar estado
+    if (estado === 'live' || estado === 'en vivo' || estado === '1') estado = 'live';
+    else if (estado === 'finished' || estado === 'finalizado' || estado === '2') estado = 'finished';
+    else if (estado === 'notstarted' || estado === 'no iniciado' || estado === '0') estado = 'notstarted';
+    else estado = 'unknown';
 
-    if (!games) {
-        console.error("No se encontró un array de partidos en la respuesta:", data);
-        return [];
-    }
-
-    return games.map(function(g) {
-        const local = g.local || g.home || g.equipo_local || g.team1 || "";
-        const visita = g.visita || g.away || g.equipo_visita || g.team2 || "";
-        const golL = g.golL !== undefined ? g.golL : (g.local_score !== undefined ? g.local_score : (g.home_score !== undefined ? g.home_score : ""));
-        const golV = g.golV !== undefined ? g.golV : (g.visita_score !== undefined ? g.visita_score : (g.away_score !== undefined ? g.away_score : ""));
-        let estado = g.estado || g.status || "";
-        if (estado === "live" || estado === "en vivo" || estado === "1") estado = "live";
-        else if (estado === "finished" || estado === "finalizado" || estado === "2") estado = "finished";
-        else estado = "unknown";
-
-        return {
-            local: local.toString(),
-            visita: visita.toString(),
-            golL: golL.toString(),
-            golV: golV.toString(),
-            estado: estado
-        };
-    });
+    return {
+        id: id,
+        local: local,
+        visita: visita,
+        golL: golLocal,
+        golV: golVisita,
+        estado: estado
+    };
 }
 
-async function obtenerPartidos() {
+async function obtenerPartidosDesdeCSV() {
     try {
-        const resp = await fetch(API_URL, { cache: 'no-store' });
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const data = await resp.json();
-        const partidos = parsearAPI(data);
-        console.log("Partidos obtenidos:", partidos);
+        const respuesta = await fetch(URL_RESULTADOS_CSV, { cache: 'no-store' });
+        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+        const csv = await respuesta.text();
+        // Dividir en líneas, manejando tanto \r\n como \n
+        const lineas = csv.split(String.fromCharCode(13)).join('').split(String.fromCharCode(10)).filter(linea => linea.trim() !== '');
+        if (lineas.length < 2) return [];
+        // La primera línea es la cabecera, la saltamos
+        const filas = lineas.slice(1).map(linea => parseCSVRow(linea));
+        // Convertir cada fila a partido, filtrando aquellos que no tengan local o visita
+        const partidos = filas.map(fila => convertirFilaAPartido(fila)).filter(p => p.local && p.visita);
         return partidos;
     } catch (e) {
-        console.error("Error al obtener partidos:", e);
-        return null;
+        console.error('Error al obtener partidos desde CSV:', e);
+        return [];
     }
 }
 
 function ultimoFinished(partidos) {
-    const terminados = partidos.filter(function(p) { return p.estado === "finished"; });
+    const terminados = partidos.filter(p => p.estado === 'finished');
     return terminados.length ? terminados[terminados.length - 1] : null;
 }
 
 function tarjetaPartido(p, enVivo) {
-    const color = enVivo ? "#0f7a46" : "#64748b";
-    const fondo = enVivo ? "linear-gradient(135deg, #ecfdf5, #f0fdf4)" : "#f8fafc";
+    const color = enVivo ? '#0f7a46' : '#64748b';
+    const fondo = enVivo ? 'linear-gradient(135deg, #ecfdf5, #f0fdf4)' : '#f8fafc';
     const badge = enVivo
         ? '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>'
         : '<span style="background:#e2e8f0;color:#475569;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">Finalizado</span>';
@@ -509,10 +497,10 @@ function tarjetaPartido(p, enVivo) {
 function renderWidget(partidos) {
     const contenedor = document.getElementById('widget-en-vivo');
     if (!contenedor) return;
-    const vivos = partidos.filter(function(p) { return p.estado === "live"; });
+    const vivos = partidos.filter(p => p.estado === 'live');
 
     if (vivos.length) {
-        contenedor.innerHTML = vivos.map(function(p) { return tarjetaPartido(p, true); }).join("");
+        contenedor.innerHTML = vivos.map(p => tarjetaPartido(p, true)).join('');
         return;
     }
 
@@ -525,10 +513,10 @@ function renderWidget(partidos) {
     contenedor.innerHTML = '<p style="color:#64748b; font-size:13px; margin:0;">No hay partidos disponibles aún.</p>';
 }
 
-let intervaloActualizacion = null;
+let intervaloWidget = null;
 
 async function actualizarWidget() {
-    const partidos = await obtenerPartidos();
+    const partidos = await obtenerPartidosDesdeCSV();
     if (partidos && partidos.length > 0) {
         renderWidget(partidos);
     } else {
@@ -539,6 +527,8 @@ async function actualizarWidget() {
 
 // Iniciar
 actualizarWidget();
+if (intervaloWidget) clearInterval(intervaloWidget);
+intervaloWidget = setInterval(actualizarWidget, 10000);
 if (intervaloActualizacion) clearInterval(intervaloActualizacion);
 intervaloActualizacion = setInterval(actualizarWidget, 10000);
 
