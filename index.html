@@ -657,14 +657,18 @@
     }
 
     // --------------------------------------------------------------
-    // 3. FUNCIONES PARA LA TABLA DE POSICIONES (CORREGIDO)
+    // 3. FUNCIONES PARA LA TABLA DE POSICIONES (CORREGIDO - HOJA "Tabla dinámica 5")
     // --------------------------------------------------------------
     const SHEET_ID = "1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM";
-    // Usar la URL de Google Sheets con el formato correcto para datos públicos
-    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+    // NOTA: El gid=0 es la primera hoja. Para "Tabla dinámica 5" necesitamos su gid específico.
+    // Como no sabemos el gid exacto, usamos el nombre de la hoja en la URL.
+    // Opción 1: Usar el nombre de la hoja en la URL
+    const SHEET_NAME = "Tabla dinámica 5";
+    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
 
     async function obtenerDatosTabla() {
       try {
+        console.log('Intentando cargar desde la hoja:', SHEET_NAME);
         const response = await fetch(SHEET_URL, { 
           cache: 'no-store',
           headers: { 
@@ -680,11 +684,11 @@
         
         // Verificar que no sea HTML (página de error o login)
         if (csvText.trim().startsWith('<!DOCTYPE') || csvText.trim().startsWith('<html')) {
-          throw new Error('La hoja no es pública. Por favor, comparte la hoja como "Cualquier persona con el enlace" con permiso de "Lector".');
+          throw new Error(`La hoja "${SHEET_NAME}" no es pública o no existe. Por favor, comparte la hoja como "Cualquier persona con el enlace" con permiso de "Lector".`);
         }
         
         if (!csvText || csvText.trim() === '') {
-          throw new Error('El archivo CSV está vacío.');
+          throw new Error(`La hoja "${SHEET_NAME}" está vacía.`);
         }
         
         return csvText;
@@ -815,7 +819,7 @@
       if (!container) return;
       
       if (!participantes || participantes.length === 0) {
-        container.innerHTML = `<p style="padding: 20px; text-align: center; color: #64748b;">No se encontraron participantes. Verifica que la hoja tenga datos.</p>`;
+        container.innerHTML = `<p style="padding: 20px; text-align: center; color: #64748b;">No se encontraron participantes en la hoja "${SHEET_NAME}". Verifica que los datos estén en el rango A1:E23.</p>`;
         return;
       }
 
@@ -886,7 +890,7 @@
     async function cargarTabla() {
       const estadoDiv = document.getElementById('estadoCargaTabla');
       const container = document.getElementById('tablaContainer');
-      estadoDiv.textContent = '⏳ Cargando datos desde Google Sheets...';
+      estadoDiv.textContent = `⏳ Cargando datos desde la hoja "${SHEET_NAME}"...`;
       estadoDiv.className = 'estado-carga';
       container.innerHTML = '';
 
@@ -897,12 +901,12 @@
         const data = parseCSV(csv);
         console.log('Datos parseados (cantidad de filas):', data.length);
         
-        if (!data || data.length === 0) throw new Error('No se encontraron datos en la hoja.');
+        if (!data || data.length === 0) throw new Error(`No se encontraron datos en la hoja "${SHEET_NAME}".`);
         
         const top11 = ordenarParticipantes(data);
         console.log('Top 11 ordenados:', top11);
         
-        estadoDiv.textContent = `✅ ${top11.length} participantes cargados (Top 11).`;
+        estadoDiv.textContent = `✅ ${top11.length} participantes cargados desde "${SHEET_NAME}" (Top 11).`;
         estadoDiv.className = 'estado-carga exito';
         renderizarTabla(top11);
       } catch (error) {
@@ -911,7 +915,7 @@
         container.innerHTML = `<div style="padding: 20px; text-align: center; color: #991b1b; background: #fee2e2; border-radius: 8px; border: 1px solid #fecaca;">
           <p style="font-weight: bold; font-size: 1.1rem;">⚠️ No se pudo cargar la tabla</p>
           <p style="margin-top: 8px;">${error.message}</p>
-          <p style="margin-top: 12px; font-size: 0.9rem; color: #64748b;">Verifica que la hoja sea pública (Archivo > Compartir > Cualquier persona con el enlace) y que el rango A1:E23 contenga datos.</p>
+          <p style="margin-top: 12px; font-size: 0.9rem; color: #64748b;">Verifica que la hoja "${SHEET_NAME}" sea pública (Archivo > Compartir > Cualquier persona con el enlace) y que contenga datos en el rango A1:E23.</p>
           <p style="margin-top: 8px; font-size: 0.8rem; color: #64748b;">URL de la hoja: <a href="https://docs.google.com/spreadsheets/d/1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM/edit?usp=sharing" target="_blank" style="color: #0047ab;">Abrir hoja</a></p>
         </div>`;
         console.error("Error en cargarTabla:", error);
