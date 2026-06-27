@@ -176,12 +176,12 @@
       border: 1px solid #bbf7d0;
     }
 
-    /* ===== BRACKET ===== */
+    /* ===== BRACKET – MODIFICADO PARA TAMAÑOS MÁS GRANDES ===== */
     .bracket {
       display: flex;
-      gap: 24px;
+      gap: 30px;
       padding: 10px 0;
-      justify-content: flex-start;
+      justify-content: center;
       align-items: stretch;
       overflow-x: auto;
     }
@@ -191,35 +191,36 @@
       flex-direction: column;
       justify-content: space-around;
       flex: 0 0 auto;
-      gap: 6px;
+      gap: 12px; /* Más espacio entre partidos */
+      min-width: 260px; /* Ancho mínimo mayor */
     }
 
     .ronda-titulo {
       font-weight: 700;
-      font-size: 0.8rem;
+      font-size: 1rem; /* Más grande */
       text-align: center;
       color: #0b3a8f;
       background: #e0ecff;
-      padding: 4px 6px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      letter-spacing: 0.3px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
       white-space: nowrap;
     }
 
     .partido {
       background: #ffffff;
-      border: 1px solid var(--borde);
-      border-radius: 8px;
-      padding: 4px 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      font-size: 0.75rem;
+      border: 2px solid var(--borde); /* Borde más grueso */
+      border-radius: 12px;
+      padding: 12px 16px; /* Más padding */
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      font-size: 0.9rem; /* Fuente más grande */
       display: flex;
       flex-direction: column;
       justify-content: center;
       transition: background 0.1s;
       width: 100%;
-      min-height: 40px;
+      min-height: 70px; /* Más alto */
     }
 
     .partido:hover {
@@ -227,55 +228,56 @@
     }
 
     .partido-header {
-      font-size: 0.6rem;
+      font-size: 0.7rem;
       font-weight: 600;
       color: #64748b;
-      letter-spacing: 0.2px;
-      margin-bottom: 1px;
+      letter-spacing: 0.3px;
+      margin-bottom: 4px;
     }
 
     .equipo {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 1px 0;
-      line-height: 1.3;
+      padding: 4px 0;
+      line-height: 1.4;
     }
 
     .equipo-nombre {
       display: flex;
       align-items: center;
-      gap: 4px;
-      font-weight: 500;
+      gap: 8px;
+      font-weight: 600;
+      font-size: 1rem; /* Más grande */
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .equipo-nombre img {
-      width: 18px;
-      height: 12px;
-      border-radius: 2px;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+      width: 28px; /* Banderas más grandes */
+      height: 18px;
+      border-radius: 3px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
       flex-shrink: 0;
       object-fit: cover;
       background-color: #f8fafc;
       vertical-align: middle;
-      margin-right: 4px;
+      margin-right: 6px;
     }
 
     .equipo-nombre.ganador {
-      font-weight: 700;
+      font-weight: 800;
       color: #0f7a46;
     }
 
     .equipo-resultado {
-      font-weight: 600;
+      font-weight: 700;
       background: #e2e8f0;
-      padding: 0 6px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      min-width: 20px;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      min-width: 28px;
       text-align: center;
       flex-shrink: 0;
     }
@@ -286,51 +288,81 @@
     }
 
     .partido-sin-definir {
-      opacity: 0.4;
+      opacity: 0.5;
       justify-content: center;
       align-items: center;
       color: #94a3b8;
-      min-height: 40px;
+      font-size: 0.9rem;
+      min-height: 70px;
       display: flex;
+      font-weight: 600;
     }
 
+    /* Ajustes para móviles */
     @media (max-width: 1000px) {
       .bracket {
-        gap: 12px;
+        gap: 18px;
+      }
+      .ronda {
+        min-width: 200px;
+        gap: 10px;
+      }
+      .partido {
+        padding: 10px 12px;
+        min-height: 60px;
+        font-size: 0.8rem;
+      }
+      .equipo-nombre {
+        font-size: 0.85rem;
       }
       .equipo-nombre img {
-        width: 14px;
-        height: 10px;
+        width: 22px;
+        height: 14px;
       }
       .equipo-resultado {
-        font-size: 0.6rem;
-        min-width: 16px;
-        padding: 0 4px;
+        font-size: 0.8rem;
+        min-width: 24px;
+        padding: 2px 6px;
       }
-      .partido-header {
-        font-size: 0.5rem;
+      .ronda-titulo {
+        font-size: 0.85rem;
+        padding: 6px 10px;
       }
     }
 
     @media (max-width: 700px) {
       .bracket {
+        gap: 12px;
+      }
+      .ronda {
+        min-width: 160px;
         gap: 8px;
       }
+      .partido {
+        padding: 6px 8px;
+        min-height: 50px;
+        font-size: 0.7rem;
+      }
+      .equipo-nombre {
+        font-size: 0.75rem;
+        gap: 4px;
+      }
       .equipo-nombre img {
-        width: 12px;
-        height: 8px;
+        width: 18px;
+        height: 12px;
+        margin-right: 4px;
       }
       .equipo-resultado {
-        font-size: 0.5rem;
-        min-width: 14px;
-        padding: 0 2px;
+        font-size: 0.7rem;
+        min-width: 20px;
+        padding: 1px 4px;
+      }
+      .ronda-titulo {
+        font-size: 0.7rem;
+        padding: 4px 8px;
       }
       .partido-header {
-        font-size: 0.45rem;
-      }
-      .partido {
-        padding: 2px 4px;
-        min-height: 30px;
+        font-size: 0.6rem;
       }
     }
 
@@ -359,7 +391,6 @@
       text-align: left;
       font-weight: 800;
     }
-    /* Posición */
     .posicion-celda {
       color: #111827;
       width: 48px;
@@ -375,7 +406,6 @@
       background: #facc15;
       color: #111827;
     }
-    /* Leyenda */
     .leyenda-puntajes {
       display: flex;
       gap: 12px;
@@ -571,7 +601,7 @@
 
   <!-- PANEL FIXTURE -->
   <section id="tabFixture" class="panel-tab activo">
-    <h2>📋 Cuadro del torneo (Eliminación directa)</h2>
+    <h2>📋 Cuadro del torneo (Eliminación directa – hasta Cuartos)</h2>
     <div id="estadoCargaFixture" class="estado-carga">Cargando datos desde la API...</div>
     <div id="bracketContainer" class="bracket"></div>
   </section>
@@ -583,7 +613,7 @@
     <div id="tablaContainer"></div>
   </section>
 
-  <!-- SECCIÓN RECLAMOS (AGREGADA) -->
+  <!-- SECCIÓN RECLAMOS -->
   <section class="seccion-reclamos">
     <h2>¿Tienes algún reclamo?</h2>
     <p></p>
@@ -597,7 +627,7 @@
 <script>
   (function() {
     // ================================================================
-    // 1. SISTEMA DE USUARIO Y VISITAS (CON INVITADO REGISTRANDO VISITAS)
+    // 1. SISTEMA DE USUARIO Y VISITAS
     // ================================================================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-XI-wqSxdXUhDbRw0mGI_7vA29pfB92PY1KhqsyFFTmydCBQWY39ccQzo_6xWtbVTwg/exec';
     const STORAGE_KEY = 'usuario_actual_polla_mundial';
@@ -751,7 +781,7 @@
     }
 
     // ================================================================
-    // 2. TRADUCCIONES Y BANDERAS (para el fixture)
+    // 2. TRADUCCIONES Y BANDERAS
     // ================================================================
     const traducciones = {
       "Mexico": "México", "South Korea": "Corea del Sur", "Korea Republic": "Corea del Sur",
@@ -796,13 +826,13 @@
       const paisLimpio = nombrePais.trim();
       const codigo = BANDERAS[paisLimpio];
       if (codigo) {
-        return `<img src="https://flagcdn.com/16x12/${codigo}.png" style="vertical-align: middle; margin-right: 8px; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.2);" alt="Bandera de ${paisLimpio}" onerror="this.style.display='none'">`;
+        return `<img src="https://flagcdn.com/28x18/${codigo}.png" alt="Bandera de ${paisLimpio}" onerror="this.style.display='none'">`;
       }
       return '';
     }
 
     // ================================================================
-    // 3. FUNCIONES PARA EL FIXTURE (MODIFICADO PARA INCLUIR TERCER LUGAR)
+    // 3. FUNCIONES PARA EL FIXTURE – SOLO HASTA CUARTOS
     // ================================================================
     const API_URL = "https://worldcup26.ir/get/games";
 
@@ -819,8 +849,8 @@
     }
 
     function organizarPartidos(todos) {
-      // Tipos de eliminación directa incluyendo el tercer lugar
-      const tiposKnockout = ['r32', 'r16', 'qf', 'sf', 'final', 'third', '3rd'];
+      // Solo incluimos rondas hasta cuartos de final
+      const tiposKnockout = ['r32', 'r16', 'qf'];
       const knockouts = todos.filter(p => tiposKnockout.includes(p.type));
 
       const porTipo = {};
@@ -829,8 +859,8 @@
         porTipo[p.type].push(p);
       });
 
-      // Orden deseado para las columnas: r32, r16, qf, sf, third, final
-      const ordenTipos = ['r32', 'r16', 'qf', 'sf', 'third', 'final'];
+      // Orden de columnas: r32, r16, qf
+      const ordenTipos = ['r32', 'r16', 'qf'];
       const resultado = {};
       ordenTipos.forEach(tipo => {
         if (porTipo[tipo]) {
@@ -840,10 +870,6 @@
           resultado[tipo] = [];
         }
       });
-      // También agregar '3rd' si existe y no está en 'third'
-      if (porTipo['3rd']) {
-        resultado['third'] = (resultado['third'] || []).concat(porTipo['3rd']);
-      }
       return resultado;
     }
 
@@ -853,15 +879,12 @@
       container.innerHTML = '';
 
       const titulos = {
-        'r32': '16avos',
+        'r32': 'Dieciseisavos',
         'r16': 'Octavos',
-        'qf': 'Cuartos',
-        'sf': 'Semifinales',
-        'third': 'Tercer lugar',
-        'final': 'Final'
+        'qf': 'Cuartos'
       };
 
-      const tipos = ['r32', 'r16', 'qf', 'sf', 'third', 'final'];
+      const tipos = ['r32', 'r16', 'qf'];
 
       tipos.forEach((tipo) => {
         const partidos = partidosPorTipo[tipo] || [];
@@ -912,6 +935,7 @@
           header.textContent = `M${p.id}`;
           div.appendChild(header);
 
+          // Local
           const eqLocal = document.createElement('div');
           eqLocal.className = 'equipo';
           const nombreLocal = document.createElement('span');
@@ -925,6 +949,7 @@
           eqLocal.appendChild(resLocal);
           div.appendChild(eqLocal);
 
+          // Visita
           const eqVisita = document.createElement('div');
           eqVisita.className = 'equipo';
           const nombreVisita = document.createElement('span');
@@ -944,6 +969,7 @@
         container.appendChild(columna);
       });
 
+      // Ajuste de ancho con valores mínimos más grandes
       function ajustarAnchos() {
         const columnas = container.querySelectorAll('.ronda');
         columnas.forEach(columna => {
@@ -961,8 +987,8 @@
             document.body.removeChild(clonP);
             if (anchoP > maxPartidoWidth) maxPartidoWidth = anchoP;
           });
-          if (maxPartidoWidth === 0) maxPartidoWidth = 160;
-          const anchoFinal = maxPartidoWidth + 16;
+          if (maxPartidoWidth === 0) maxPartidoWidth = 240; // Base más grande
+          const anchoFinal = maxPartidoWidth + 32; // Más padding
           columna.style.minWidth = anchoFinal + 'px';
           columna.style.maxWidth = anchoFinal + 'px';
           partidos.forEach(p => {
@@ -976,7 +1002,7 @@
     }
 
     // ================================================================
-    // 4. FUNCIONES PARA LA TABLA DE POSICIONES
+    // 4. FUNCIONES PARA LA TABLA DE POSICIONES (sin cambios)
     // ================================================================
     const SHEET_ID = "1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM";
     const SHEET_NAME = "Tabla dinámica 5";
@@ -1178,7 +1204,7 @@
     }
 
     // ================================================================
-    // 5. FLUJO PRINCIPAL Y PESTAÑAS
+    // 5. FLUJO PRINCIPAL
     // ================================================================
     async function cargarFixture() {
       const estadoDiv = document.getElementById('estadoCargaFixture');
@@ -1192,7 +1218,7 @@
         if (!todos || todos.length === 0) throw new Error('No se recibieron partidos de la API.');
         const partidosPorTipo = organizarPartidos(todos);
         const totalKnockouts = Object.values(partidosPorTipo).reduce((sum, arr) => sum + arr.length, 0);
-        estadoDiv.textContent = `✅ ${totalKnockouts} partidos de eliminación directa cargados.`;
+        estadoDiv.textContent = `✅ ${totalKnockouts} partidos de eliminación directa cargados (hasta cuartos).`;
         estadoDiv.className = 'estado-carga exito';
         renderizarBracket(partidosPorTipo);
       } catch (error) {
