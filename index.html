@@ -334,48 +334,188 @@
       }
     }
 
-    /* ===== TABLA DE POSICIONES ===== */
+    /* ===== TABLA DE POSICIONES – FORMATO COPIADO DE "Resultados por grupo" ===== */
     .tabla-posiciones {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9rem;
+      font-size: 14px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid #1f2937;
     }
-    .tabla-posiciones thead th {
+    .tabla-posiciones th,
+    .tabla-posiciones td {
+      border: 1px solid #1f2937;
+      text-align: center;
+      font-weight: 700;
+      padding: 8px;
+    }
+    .tabla-posiciones th {
+      background: #f3f4f6;
+      color: #111827;
+      font-style: italic;
+    }
+    .tabla-posiciones td.col-participante {
       text-align: left;
-      padding: 10px 12px;
-      background-color: #f1f5f9;
-      border-bottom: 2px solid var(--borde);
+      font-weight: 800;
+    }
+    /* Posición */
+    .posicion-celda {
+      color: #111827;
+      width: 48px;
+    }
+    .posicion-celda.clasifica {
+      background: #39d353;
+    }
+    .posicion-celda.descalifica {
+      background: #ff4d4f;
+      color: #ffffff;
+    }
+    .posicion-celda.honorifico {
+      background: #facc15;
+      color: #111827;
+    }
+    /* Leyenda */
+    .leyenda-puntajes {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      font-size: 13px;
       font-weight: 700;
-      color: #0b3a8f;
     }
-    .tabla-posiciones tbody td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--linea);
-      vertical-align: middle;
+    .leyenda-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
-    .tabla-posiciones tbody tr:hover {
-      background-color: #f8fafc;
+    .leyenda-color {
+      width: 14px;
+      height: 14px;
+      border: 1px solid #111827;
+      display: inline-block;
     }
-    .tabla-posiciones .medalla {
-      font-size: 1.2rem;
-      margin-right: 4px;
+
+    /* ===== USUARIO ACTUAL ===== */
+    .usuario-actual {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-top: 10px;
+      font-size: 14px;
+      background-color: #e9ecef;
+      padding: 5px 15px;
+      border-radius: 30px;
+      width: fit-content;
     }
-    .tabla-posiciones .num-pos {
-      font-weight: 700;
-      color: var(--texto-sec);
+    .usuario-actual .btn-cambiar {
+      background: none;
+      border: none;
+      color: #0047ab;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: underline;
     }
-    .tabla-posiciones .participante {
+    .usuario-actual .btn-cambiar:hover {
+      color: #002d6b;
+    }
+    .usuario-actual .visitas {
       font-weight: 600;
-    }
-    .tabla-posiciones .puntaje {
-      font-weight: 700;
       color: #0f7a46;
     }
-    .tabla-posiciones .col-center {
-      text-align: center;
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(3px);
     }
-    .tabla-posiciones .col-der {
-      text-align: right;
+    .modal-content {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.3);
+    }
+    .modal-content h2 {
+      margin-top: 0;
+      color: #0b3a8f;
+    }
+    .modal-content p {
+      color: var(--texto-sec);
+      margin-bottom: 15px;
+    }
+    .modal-content select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+      margin-bottom: 20px;
+      background: white;
+    }
+    .modal-content select:focus {
+      outline: 2px solid rgba(0, 71, 171, 0.2);
+      border-color: var(--acento-2);
+    }
+    .modal-content .btn-ingresar {
+      background: linear-gradient(135deg, #0f7a46, #0c663a);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    .modal-content .btn-ingresar:hover {
+      filter: brightness(1.06);
+    }
+    .modal-content .nota {
+      font-size: 12px;
+      color: #666;
+      margin-top: 20px;
+    }
+
+    /* ===== SECCIÓN RECLAMOS ===== */
+    .seccion-reclamos {
+      text-align: center;
+      margin: 50px 0 30px;
+      padding: 20px;
+      border-top: 2px solid #e2e8f0;
+    }
+    .seccion-reclamos h2 {
+      color: var(--texto);
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+    .seccion-reclamos p {
+      color: var(--texto-sec);
+      margin-bottom: 20px;
+    }
+    .seccion-reclamos .btn-reclamo {
+      display: inline-block;
+      background-color: var(--acento-2);
+      color: white;
+      padding: 12px 25px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .seccion-reclamos .btn-reclamo:hover {
+      background-color: #003380;
     }
 
     .pie {
@@ -391,18 +531,22 @@
 
     @media (max-width: 700px) {
       .tabla-posiciones {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
       }
-      .tabla-posiciones thead th,
-      .tabla-posiciones tbody td {
+      .tabla-posiciones th,
+      .tabla-posiciones td {
         padding: 6px 8px;
-      }
-      .tabla-posiciones .medalla {
-        font-size: 1rem;
       }
       .tab-btn {
         padding: 6px 12px;
         font-size: 0.8rem;
+      }
+      .usuario-actual {
+        font-size: 12px;
+        padding: 4px 12px;
+      }
+      .seccion-reclamos h2 {
+        font-size: 1.2rem;
       }
     }
   </style>
@@ -416,6 +560,7 @@
     <div class="accion">
       <button class="btn-recargar" id="btnRecargar">🔄 Recargar datos</button>
     </div>
+    <div id="usuarioContainer"></div>
   </header>
 
   <!-- PESTAÑAS -->
@@ -438,15 +583,176 @@
     <div id="tablaContainer"></div>
   </section>
 
+  <!-- SECCIÓN RECLAMOS (AGREGADA) -->
+  <section class="seccion-reclamos">
+    <h2>¿Tienes algún reclamo?</h2>
+    <p></p>
+    <a href="https://www.fifa.com/es/contact" target="_blank" class="btn-reclamo">Ir</a>
+  </section>
+
   <p class="pie"><strong>Aroa</strong></p>
   <p class="pie">Powered by <strong>LuigiBET (c)</strong></p>
 </div>
 
 <script>
   (function() {
-    // --------------------------------------------------------------
-    // 1. TRADUCCIONES Y BANDERAS (para el fixture)
-    // --------------------------------------------------------------
+    // ================================================================
+    // 1. SISTEMA DE USUARIO Y VISITAS (CON INVITADO REGISTRANDO VISITAS)
+    // ================================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-XI-wqSxdXUhDbRw0mGI_7vA29pfB92PY1KhqsyFFTmydCBQWY39ccQzo_6xWtbVTwg/exec';
+    const STORAGE_KEY = 'usuario_actual_polla_mundial';
+
+    const LISTA_PARTICIPANTES = [
+      'Invitado',
+      'Ariel',
+      'Camilo',
+      'Carito',
+      'Claudio Padilla',
+      'Daniela',
+      'Diego Toledo',
+      'Felipe Bustos',
+      'Felipe HD',
+      'Grace',
+      'Karen Garrido',
+      'Lando',
+      'Leo',
+      'Marcelitocuerdas',
+      'Marrosquino',
+      'María Isabel',
+      'Miry',
+      'Pablo Meliqueo',
+      'Papasote ALV',
+      'Rocio',
+      'Rodrigo Arriaza',
+      'Sergio Luigi',
+      'Stuart'
+    ];
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
+    async function registrarVisita(participante) {
+      if (!participante) return;
+      const nombreParaRegistro = participante;
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ participante: nombreParaRegistro })
+        });
+        console.log(`✅ Visita registrada para: ${nombreParaRegistro}`);
+      } catch (err) {
+        console.error('❌ Error al registrar visita:', err);
+      }
+    }
+
+    async function obtenerVisitas(participante) {
+      if (!participante) return 0;
+      try {
+        const url = `${SCRIPT_URL}?participante=${encodeURIComponent(participante)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        return data.visitas || 0;
+      } catch (err) {
+        console.error('Error al obtener visitas:', err);
+        return 0;
+      }
+    }
+
+    function mostrarUsuarioActual(nombre) {
+      const container = document.getElementById('usuarioContainer');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!nombre) return;
+
+      const div = document.createElement('div');
+      div.className = 'usuario-actual';
+      div.innerHTML = `
+        <span>👤 <strong>${escapeHtml(nombre)}</strong></span>
+        <span class="visitas">👁️ Visitas: <span id="contadorValor">--</span></span>
+        <button class="btn-cambiar" id="btnCambiarUsuario">Cambiar usuario</button>
+      `;
+      container.appendChild(div);
+
+      obtenerVisitas(nombre).then(visitas => {
+        const span = document.getElementById('contadorValor');
+        if (span) span.textContent = visitas;
+      });
+
+      document.getElementById('btnCambiarUsuario')?.addEventListener('click', () => {
+        localStorage.removeItem(STORAGE_KEY);
+        mostrarModal();
+        container.innerHTML = '';
+      });
+    }
+
+    function mostrarModal() {
+      if (document.getElementById('modalLogin')) return;
+
+      const modal = document.createElement('div');
+      modal.id = 'modalLogin';
+      modal.className = 'modal-overlay';
+
+      modal.innerHTML = `
+        <div class="modal-content">
+          <h2>👋 Bienvenido a LuigiBET 2026</h2>
+          <p>Selecciona tu nombre para continuar:</p>
+          <select id="selectUsuario">
+            <option value="">-- Elige tu usuario --</option>
+            ${LISTA_PARTICIPANTES.map(p => `<option value="${p.replace(/"/g, '&quot;')}">${p}</option>`).join('')}
+          </select>
+          <button class="btn-ingresar" id="btnConfirmarUsuario">Ingresar</button>
+          <p class="nota">* Tus apuestas se mantendrán asociadas a este nombre.</p>
+        </div>
+      `;
+
+      document.body.appendChild(modal);
+
+      const btnConfirmar = document.getElementById('btnConfirmarUsuario');
+      const selectUsuario = document.getElementById('selectUsuario');
+
+      const seleccionar = async () => {
+        const nombre = selectUsuario.value;
+        if (nombre) {
+          localStorage.setItem(STORAGE_KEY, nombre);
+          await registrarVisita(nombre);
+          modal.remove();
+          mostrarUsuarioActual(nombre);
+        } else {
+          alert('Por favor selecciona un participante.');
+        }
+      };
+
+      btnConfirmar.addEventListener('click', seleccionar);
+      selectUsuario.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') seleccionar();
+      });
+    }
+
+    function iniciarSistemaUsuario() {
+      const usuarioGuardado = localStorage.getItem(STORAGE_KEY);
+      if (usuarioGuardado && LISTA_PARTICIPANTES.includes(usuarioGuardado)) {
+        mostrarUsuarioActual(usuarioGuardado);
+        registrarVisita(usuarioGuardado);
+      } else {
+        if (usuarioGuardado) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+        mostrarModal();
+      }
+    }
+
+    // ================================================================
+    // 2. TRADUCCIONES Y BANDERAS (para el fixture)
+    // ================================================================
     const traducciones = {
       "Mexico": "México", "South Korea": "Corea del Sur", "Korea Republic": "Corea del Sur",
       "Czech Republic": "Chequia", "Czechia": "Chequia", "South Africa": "Sudáfrica",
@@ -495,9 +801,9 @@
       return '';
     }
 
-    // --------------------------------------------------------------
-    // 2. FUNCIONES PARA EL FIXTURE
-    // --------------------------------------------------------------
+    // ================================================================
+    // 3. FUNCIONES PARA EL FIXTURE (MODIFICADO PARA INCLUIR TERCER LUGAR)
+    // ================================================================
     const API_URL = "https://worldcup26.ir/get/games";
 
     async function obtenerDatosAPI() {
@@ -513,14 +819,18 @@
     }
 
     function organizarPartidos(todos) {
-      const tiposKnockout = ['r32', 'r16', 'qf', 'sf', 'final'];
+      // Tipos de eliminación directa incluyendo el tercer lugar
+      const tiposKnockout = ['r32', 'r16', 'qf', 'sf', 'final', 'third', '3rd'];
       const knockouts = todos.filter(p => tiposKnockout.includes(p.type));
+
       const porTipo = {};
       knockouts.forEach(p => {
         if (!porTipo[p.type]) porTipo[p.type] = [];
         porTipo[p.type].push(p);
       });
-      const ordenTipos = ['r32', 'r16', 'qf', 'sf', 'final'];
+
+      // Orden deseado para las columnas: r32, r16, qf, sf, third, final
+      const ordenTipos = ['r32', 'r16', 'qf', 'sf', 'third', 'final'];
       const resultado = {};
       ordenTipos.forEach(tipo => {
         if (porTipo[tipo]) {
@@ -530,6 +840,10 @@
           resultado[tipo] = [];
         }
       });
+      // También agregar '3rd' si existe y no está en 'third'
+      if (porTipo['3rd']) {
+        resultado['third'] = (resultado['third'] || []).concat(porTipo['3rd']);
+      }
       return resultado;
     }
 
@@ -538,8 +852,16 @@
       if (!container) return;
       container.innerHTML = '';
 
-      const titulos = { 'r32': '16avos', 'r16': 'Octavos', 'qf': 'Cuartos', 'sf': 'Semifinales', 'final': 'Final' };
-      const tipos = ['r32', 'r16', 'qf', 'sf', 'final'];
+      const titulos = {
+        'r32': '16avos',
+        'r16': 'Octavos',
+        'qf': 'Cuartos',
+        'sf': 'Semifinales',
+        'third': 'Tercer lugar',
+        'final': 'Final'
+      };
+
+      const tipos = ['r32', 'r16', 'qf', 'sf', 'third', 'final'];
 
       tipos.forEach((tipo) => {
         const partidos = partidosPorTipo[tipo] || [];
@@ -590,7 +912,6 @@
           header.textContent = `M${p.id}`;
           div.appendChild(header);
 
-          // Local
           const eqLocal = document.createElement('div');
           eqLocal.className = 'equipo';
           const nombreLocal = document.createElement('span');
@@ -604,7 +925,6 @@
           eqLocal.appendChild(resLocal);
           div.appendChild(eqLocal);
 
-          // Visita
           const eqVisita = document.createElement('div');
           eqVisita.className = 'equipo';
           const nombreVisita = document.createElement('span');
@@ -624,7 +944,6 @@
         container.appendChild(columna);
       });
 
-      // Ajuste de ancho
       function ajustarAnchos() {
         const columnas = container.querySelectorAll('.ronda');
         columnas.forEach(columna => {
@@ -656,13 +975,10 @@
       });
     }
 
-    // --------------------------------------------------------------
-    // 3. FUNCIONES PARA LA TABLA DE POSICIONES (CORREGIDO - HOJA "Tabla dinámica 5")
-    // --------------------------------------------------------------
+    // ================================================================
+    // 4. FUNCIONES PARA LA TABLA DE POSICIONES
+    // ================================================================
     const SHEET_ID = "1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM";
-    // NOTA: El gid=0 es la primera hoja. Para "Tabla dinámica 5" necesitamos su gid específico.
-    // Como no sabemos el gid exacto, usamos el nombre de la hoja en la URL.
-    // Opción 1: Usar el nombre de la hoja en la URL
     const SHEET_NAME = "Tabla dinámica 5";
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
 
@@ -682,9 +998,8 @@
         
         const csvText = await response.text();
         
-        // Verificar que no sea HTML (página de error o login)
         if (csvText.trim().startsWith('<!DOCTYPE') || csvText.trim().startsWith('<html')) {
-          throw new Error(`La hoja "${SHEET_NAME}" no es pública o no existe. Por favor, comparte la hoja como "Cualquier persona con el enlace" con permiso de "Lector".`);
+          throw new Error(`La hoja "${SHEET_NAME}" no es pública o no existe.`);
         }
         
         if (!csvText || csvText.trim() === '') {
@@ -699,7 +1014,6 @@
     }
 
     function parseCSV(csv) {
-      // Dividir por saltos de línea, manejando posibles comillas
       const lines = [];
       let currentLine = '';
       let insideQuotes = false;
@@ -724,7 +1038,6 @@
         return [];
       }
 
-      // Parsear cada línea respetando comillas
       function parseLine(line) {
         const values = [];
         let current = '';
@@ -766,7 +1079,6 @@
     function ordenarParticipantes(data) {
       if (!data || data.length === 0) return [];
       
-      // Buscar las columnas correctas
       const headers = Object.keys(data[0] || {});
       const colParticipante = headers.find(h => /participante|nombre|jugador|participants/i.test(h)) || headers[0];
       const colPuntos = headers.find(h => /puntos|puntaje|pts|points/i.test(h)) || headers[1];
@@ -776,7 +1088,6 @@
 
       console.log('Columnas detectadas:', { colParticipante, colPuntos, colAciertos, colExactos, colInscripcion });
 
-      // Convertir a números
       const participantes = data.map(row => {
         const clean = (val) => {
           if (typeof val === 'string') {
@@ -786,7 +1097,6 @@
         };
         
         const nombre = clean(row[colParticipante]);
-        // Ignorar filas sin nombre o con nombre vacío
         if (!nombre || nombre === '' || nombre === 'Participantes') return null;
         
         const puntos = parseFloat(clean(row[colPuntos]).replace(',', '.')) || 0;
@@ -803,7 +1113,6 @@
         };
       }).filter(p => p !== null);
 
-      // Ordenar: puntos desc, aciertos desc, exactos desc, inscripcion asc
       participantes.sort((a, b) => {
         if (a.puntos !== b.puntos) return b.puntos - a.puntos;
         if (a.aciertos !== b.aciertos) return b.aciertos - a.aciertos;
@@ -819,36 +1128,48 @@
       if (!container) return;
       
       if (!participantes || participantes.length === 0) {
-        container.innerHTML = `<p style="padding: 20px; text-align: center; color: #64748b;">No se encontraron participantes en la hoja "${SHEET_NAME}". Verifica que los datos estén en el rango A1:E23.</p>`;
+        container.innerHTML = `<p style="padding: 20px; text-align: center; color: #64748b;">No se encontraron participantes en la hoja "${SHEET_NAME}".</p>`;
         return;
       }
 
-      let html = `<table class="tabla-posiciones">
+      let leyendaHtml = `
+        <div class="leyenda-puntajes">
+          <span class="leyenda-chip"><span class="leyenda-color" style="background:#39d353;"></span> Clasifica 🏆</span>
+          <span class="leyenda-chip"><span class="leyenda-color" style="background:#ff4d4f;"></span> Descalificado 💀</span>
+        </div>
+      `;
+
+      let html = leyendaHtml;
+
+      html += `<table class="tabla-posiciones">
         <thead>
           <tr>
             <th>#</th>
             <th>Participantes</th>
-            <th class="col-center">Puntos</th>
-            <th class="col-center">Aciertos</th>
-            <th class="col-center">Exactos</th>
-            <th class="col-center">Inscripción</th>
+            <th>Puntos</th>
+            <th>Aciertos</th>
+            <th>Exactos</th>
+            <th>Inscripción</th>
           </tr>
         </thead>
         <tbody>`;
 
       participantes.forEach((p, index) => {
         const pos = index + 1;
-        let medalla = '';
-        if (pos === 1) medalla = '🥇 ';
-        else if (pos === 2) medalla = '🥈 ';
-        else if (pos === 3) medalla = '🥉 ';
+        let clasePosicion = '';
+        if (pos <= 6) {
+          clasePosicion = 'clasifica';
+        } else {
+          clasePosicion = 'descalifica';
+        }
+
         html += `<tr>
-          <td><span class="num-pos">${medalla}${pos}</span></td>
-          <td class="participante">${p.nombre}</td>
-          <td class="col-center puntaje">${p.puntos}</td>
-          <td class="col-center">${p.aciertos}</td>
-          <td class="col-center">${p.exactos}</td>
-          <td class="col-center">${p.inscripcion}</td>
+          <td class="posicion-celda ${clasePosicion}">${pos}</td>
+          <td class="col-participante">${p.nombre}</td>
+          <td>${p.puntos}</td>
+          <td>${p.aciertos}</td>
+          <td>${p.exactos}</td>
+          <td>${p.inscripcion}</td>
         </tr>`;
       });
 
@@ -856,9 +1177,9 @@
       container.innerHTML = html;
     }
 
-    // --------------------------------------------------------------
-    // 4. FLUJO PRINCIPAL Y PESTAÑAS
-    // --------------------------------------------------------------
+    // ================================================================
+    // 5. FLUJO PRINCIPAL Y PESTAÑAS
+    // ================================================================
     async function cargarFixture() {
       const estadoDiv = document.getElementById('estadoCargaFixture');
       const container = document.getElementById('bracketContainer');
@@ -890,7 +1211,7 @@
     async function cargarTabla() {
       const estadoDiv = document.getElementById('estadoCargaTabla');
       const container = document.getElementById('tablaContainer');
-      estadoDiv.textContent = `⏳ Cargando datos desde la hoja "${SHEET_NAME}"...`;
+      estadoDiv.textContent = `⏳ Cargando datos...`;
       estadoDiv.className = 'estado-carga';
       container.innerHTML = '';
 
@@ -901,12 +1222,12 @@
         const data = parseCSV(csv);
         console.log('Datos parseados (cantidad de filas):', data.length);
         
-        if (!data || data.length === 0) throw new Error(`No se encontraron datos en la hoja "${SHEET_NAME}".`);
+        if (!data || data.length === 0) throw new Error(`No se encontraron datos.`);
         
         const top11 = ordenarParticipantes(data);
         console.log('Top 11 ordenados:', top11);
         
-        estadoDiv.textContent = `✅ ${top11.length} participantes cargados desde "${SHEET_NAME}" (Top 11).`;
+        estadoDiv.textContent = `✅ ${top11.length} participantes cargados.`;
         estadoDiv.className = 'estado-carga exito';
         renderizarTabla(top11);
       } catch (error) {
@@ -915,8 +1236,7 @@
         container.innerHTML = `<div style="padding: 20px; text-align: center; color: #991b1b; background: #fee2e2; border-radius: 8px; border: 1px solid #fecaca;">
           <p style="font-weight: bold; font-size: 1.1rem;">⚠️ No se pudo cargar la tabla</p>
           <p style="margin-top: 8px;">${error.message}</p>
-          <p style="margin-top: 12px; font-size: 0.9rem; color: #64748b;">Verifica que la hoja "${SHEET_NAME}" sea pública (Archivo > Compartir > Cualquier persona con el enlace) y que contenga datos en el rango A1:E23.</p>
-          <p style="margin-top: 8px; font-size: 0.8rem; color: #64748b;">URL de la hoja: <a href="https://docs.google.com/spreadsheets/d/1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM/edit?usp=sharing" target="_blank" style="color: #0047ab;">Abrir hoja</a></p>
+          <p style="margin-top: 12px; font-size: 0.9rem; color: #64748b;">Verifica que la hoja con los datos sea pública.</p>
         </div>`;
         console.error("Error en cargarTabla:", error);
       }
@@ -946,12 +1266,13 @@
       });
     }
 
-    // Recargar todo
-    document.getElementById('btnRecargar').addEventListener('click', inicializarTodo);
-
-    // Ejecutar
+    // ================================================================
+    // 6. INICIO
+    // ================================================================
+    iniciarSistemaUsuario();
     setupTabs();
     inicializarTodo();
+    document.getElementById('btnRecargar').addEventListener('click', inicializarTodo);
 
   })();
 </script>
