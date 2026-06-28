@@ -1193,15 +1193,17 @@
     }
 
     // ================================================================
-    // 5. WIDGET "EN VIVO AHORA" (SOLO PARTIDOS CON ESTADO "live")
+    // 5. WIDGET "EN VIVO AHORA" (PARTIDOS EN CURSO)
     // ================================================================
     function obtenerPartidosEnVivo(todos) {
-      // Buscamos partidos cuyo campo status (o state) sea exactamente "live"
+      // Filtramos partidos que NO están terminados y tienen marcador
       const vivos = todos.filter(p => {
-        const estado = p.status || p.state || '';
-        return estado.toLowerCase() === 'live';
+        const finished = p.finished === 'TRUE' || p.finished === true;
+        const tieneMarcador = (p.home_score !== undefined && p.home_score !== null && p.home_score !== '') &&
+                              (p.away_score !== undefined && p.away_score !== null && p.away_score !== '');
+        return !finished && tieneMarcador;
       });
-      // Ordenamos por id para consistencia
+      // Ordenamos por id
       vivos.sort((a, b) => Number(a.id) - Number(b.id));
       return vivos;
     }
@@ -1217,12 +1219,11 @@
         return;
       }
 
-      // Función para generar la tarjeta de un partido
       function tarjetaPartido(p) {
         const local = traducciones[p.home_team_name_en] || p.home_team_name_en || 'TBD';
         const visita = traducciones[p.away_team_name_en] || p.away_team_name_en || 'TBD';
-        const golL = p.home_score !== undefined && p.home_score !== null ? p.home_score : '–';
-        const golV = p.away_score !== undefined && p.away_score !== null ? p.away_score : '–';
+        const golL = p.home_score;
+        const golV = p.away_score;
         const color = "#0f7a46";
         const fondo = "linear-gradient(135deg, #ecfdf5, #f0fdf4)";
         const badge = '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>';
@@ -1350,7 +1351,7 @@
     // Inicializar todo
     async function inicializarTodo() {
       await Promise.all([cargarFixture(), cargarTabla()]);
-      await actualizarWidgetEnVivo(); // Cargar el widget en vivo
+      await actualizarWidgetEnVivo();
     }
 
     // Mecanismo de pestañas
