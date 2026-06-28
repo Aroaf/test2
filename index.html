@@ -1193,51 +1193,39 @@
     }
 
     // ================================================================
-    // 5. WIDGET "EN VIVO AHORA" (desde la API)
+    // 5. WIDGET "EN VIVO AHORA" (SOLO PARTIDOS CON ESTADO "live")
     // ================================================================
     function obtenerPartidosEnVivo(todos) {
-      // Filtramos partidos que tienen marcador y no están terminados (en vivo)
+      // Buscamos partidos cuyo campo status (o state) sea exactamente "live"
       const vivos = todos.filter(p => {
-        const finished = p.finished === 'TRUE' || p.finished === true;
-        const tieneMarcador = (p.home_score !== undefined && p.home_score !== null && p.home_score !== '') &&
-                              (p.away_score !== undefined && p.away_score !== null && p.away_score !== '');
-        return !finished && tieneMarcador;
+        const estado = p.status || p.state || '';
+        return estado.toLowerCase() === 'live';
       });
-      // Ordenamos por id (para tener un orden consistente)
+      // Ordenamos por id para consistencia
       vivos.sort((a, b) => Number(a.id) - Number(b.id));
-
-      // Filtramos finalizados (con marcador) y los ordenamos por id descendente (último primero)
-      const terminados = todos.filter(p => {
-        const finished = p.finished === 'TRUE' || p.finished === true;
-        const tieneMarcador = (p.home_score !== undefined && p.home_score !== null && p.home_score !== '') &&
-                              (p.away_score !== undefined && p.away_score !== null && p.away_score !== '');
-        return finished && tieneMarcador;
-      });
-      terminados.sort((a, b) => Number(b.id) - Number(a.id));
-
-      // Devolvemos los vivos, y si no hay, el último terminado (si existe)
-      if (vivos.length > 0) return { vivos, ultimoTerminado: null };
-      if (terminados.length > 0) return { vivos: [], ultimoTerminado: terminados[0] };
-      return { vivos: [], ultimoTerminado: null };
+      return vivos;
     }
 
     function renderWidgetEnVivo(partidos) {
       const contenedor = document.getElementById('widget-en-vivo');
       if (!contenedor) return;
 
-      const { vivos, ultimoTerminado } = obtenerPartidosEnVivo(partidos);
+      const vivos = obtenerPartidosEnVivo(partidos);
+
+      if (vivos.length === 0) {
+        contenedor.innerHTML = '<p style="color:#64748b; font-size:13px; margin:0;">No hay partidos en vivo en este momento.</p>';
+        return;
+      }
 
       // Función para generar la tarjeta de un partido
-      function tarjetaPartido(p, enVivo) {
+      function tarjetaPartido(p) {
         const local = traducciones[p.home_team_name_en] || p.home_team_name_en || 'TBD';
         const visita = traducciones[p.away_team_name_en] || p.away_team_name_en || 'TBD';
         const golL = p.home_score !== undefined && p.home_score !== null ? p.home_score : '–';
         const golV = p.away_score !== undefined && p.away_score !== null ? p.away_score : '–';
-        const color = enVivo ? "#0f7a46" : "#64748b";
-        const fondo = enVivo ? "linear-gradient(135deg, #ecfdf5, #f0fdf4)" : "#f8fafc";
-        const badge = enVivo
-          ? '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>'
-          : '<span style="background:#e2e8f0;color:#475569;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">Finalizado</span>';
+        const color = "#0f7a46";
+        const fondo = "linear-gradient(135deg, #ecfdf5, #f0fdf4)";
+        const badge = '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>';
 
         const banderaLocal = obtenerHtmlConBandera(local);
         const banderaVisita = obtenerHtmlConBandera(visita);
@@ -1271,13 +1259,7 @@
       }
 
       let html = '';
-      if (vivos.length > 0) {
-        vivos.forEach(p => { html += tarjetaPartido(p, true); });
-      } else if (ultimoTerminado) {
-        html = tarjetaPartido(ultimoTerminado, false);
-      } else {
-        html = '<p style="color:#64748b; font-size:13px; margin:0;">No hay partidos disponibles aún.</p>';
-      }
+      vivos.forEach(p => { html += tarjetaPartido(p); });
       contenedor.innerHTML = html;
     }
 
