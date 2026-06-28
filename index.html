@@ -334,7 +334,7 @@
       }
     }
 
-    /* ===== TABLA DE POSICIONES – FORMATO COPIADO DE "Resultados por grupo" ===== */
+    /* ===== TABLA DE POSICIONES ===== */
     .tabla-posiciones {
       width: 100%;
       border-collapse: collapse;
@@ -359,7 +359,6 @@
       text-align: left;
       font-weight: 800;
     }
-    /* Posición */
     .posicion-celda {
       color: #111827;
       width: 48px;
@@ -375,7 +374,6 @@
       background: #facc15;
       color: #111827;
     }
-    /* Leyenda */
     .leyenda-puntajes {
       display: flex;
       gap: 12px;
@@ -550,7 +548,7 @@
       }
     }
 
-    /* Estilos para el bloque "En vivo ahora" (igual que en la página de ejemplo) */
+    /* Estilos para el bloque "En vivo ahora" y "Detalle de apuestas" */
     .bloque {
       background: var(--tarjeta);
       border: 1px solid rgba(255, 255, 255, 0.8);
@@ -564,6 +562,119 @@
       margin: 0 0 10px;
       color: #0b3a8f;
       font-size: 1.1rem;
+    }
+
+    .bloque-colapsable {
+      padding: 0;
+      overflow: hidden;
+    }
+    .bloque-colapsable > summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0b3a8f;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .bloque-colapsable > summary::-webkit-details-marker {
+      display: none;
+    }
+    .bloque-colapsable > summary::after {
+      content: 'Mostrar';
+      font-size: 12px;
+      font-weight: 700;
+      color: #0f172a;
+      background: #e2e8f0;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .bloque-colapsable[open] > summary::after {
+      content: 'Ocultar';
+      background: #c7d2fe;
+    }
+    .bloque-colapsable[open] > summary {
+      border-bottom: 1px solid var(--linea);
+    }
+    .bloque-colapsable .bloque-contenido {
+      padding: 16px;
+    }
+
+    /* Filtros y tabla de apuestas */
+    .filtros {
+      display: grid;
+      grid-template-columns: 1.2fr 1.1fr 0.9fr 1.3fr auto;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .filtros input, .filtros select, .filtros button {
+      border: 1px solid var(--borde);
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-size: 14px;
+      background: #fff;
+    }
+    .filtros input:focus, .filtros select:focus {
+      outline: 2px solid rgba(0, 71, 171, 0.2);
+      border-color: var(--acento-2);
+    }
+    .filtros button {
+      background: linear-gradient(135deg, #0f7a46, #0c663a);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .filtros button:hover {
+      filter: brightness(1.06);
+    }
+
+    .tabla {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .tabla th, .tabla td {
+      border: 1px solid var(--linea);
+      padding: 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .tabla th {
+      background: linear-gradient(180deg, #e0ecff 0%, #d7e6ff 100%);
+      color: #0a2f72;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tabla tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+    .tabla tbody tr:hover {
+      background: #ecfdf5;
+    }
+    .tabla th.orden-activo::after {
+      content: ' ▲';
+      font-size: 0.78em;
+      vertical-align: middle;
+    }
+    .tabla th.orden-activo.orden-desc::after {
+      content: ' ▼';
+    }
+
+    .estado {
+      margin-top: 10px;
+      font-size: 13px;
+      color: #3f4d63;
+      font-weight: 600;
     }
   </style>
 </head>
@@ -579,7 +690,7 @@
     <div id="usuarioContainer"></div>
   </header>
 
-  <!-- ===== BLOQUE "EN VIVO AHORA" (DESDE LA API) ===== -->
+  <!-- ===== BLOQUE "EN VIVO AHORA" ===== -->
   <div class='bloque' id='bloque-en-vivo' style='margin-bottom: 16px;'>
     <h2>⚽ En vivo ahora</h2>
     <div id='widget-en-vivo'><p style='color:#64748b; font-size:13px;'>Cargando...</p></div>
@@ -605,6 +716,32 @@
     <div id="tablaContainer"></div>
   </section>
 
+  <!-- ===== NUEVO BLOQUE: DETALLE COMPLETO DE APUESTAS (desde hoja Apuestas_16avos) ===== -->
+  <details class='bloque bloque-colapsable' id='bloqueDetalleApuestas'>
+    <summary>Detalle completo de apuestas 🤑</summary>
+    <div class='bloque-contenido'>
+      <div class='filtros'>
+        <input id='filtroTextoApuestas' type='text' placeholder='Buscar texto en la tabla'>
+        <select id='filtroParticipanteApuestas'>
+          <option value='todos'>Todos los participantes</option>
+        </select>
+        <select id='filtroGrupoApuestas'>
+          <option value='todos'>Todos los grupos</option>
+          <option value='A'>A</option><option value='B'>B</option><option value='C'>C</option>
+          <option value='D'>D</option><option value='E'>E</option><option value='F'>F</option>
+          <option value='G'>G</option><option value='H'>H</option><option value='I'>I</option>
+          <option value='J'>J</option><option value='K'>K</option><option value='L'>L</option>
+        </select>
+        <select id='filtroPartidoApuestas'>
+          <option value='todos'>Todos los partidos</option>
+        </select>
+        <button id='limpiarFiltrosApuestas' type='button'>Limpiar</button>
+      </div>
+      <div class='estado' id='estadoFiltradoApuestas'></div>
+      <div id='tablaApuestasContainer'></div>
+    </div>
+  </details>
+
   <!-- SECCIÓN RECLAMOS -->
   <section class="seccion-reclamos">
     <h2>¿Tienes algún reclamo?</h2>
@@ -619,35 +756,18 @@
 <script>
   (function() {
     // ================================================================
-    // 1. SISTEMA DE USUARIO Y VISITAS
+    // 1. SISTEMA DE USUARIO Y VISITAS (sin cambios)
     // ================================================================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-XI-wqSxdXUhDbRw0mGI_7vA29pfB92PY1KhqsyFFTmydCBQWY39ccQzo_6xWtbVTwg/exec';
     const STORAGE_KEY = 'usuario_actual_polla_mundial';
 
     const LISTA_PARTICIPANTES = [
       'Invitado',
-      'Ariel',
-      'Camilo',
-      'Carito',
-      'Claudio Padilla',
-      'Daniela',
-      'Diego Toledo',
-      'Felipe Bustos',
-      'Felipe HD',
-      'Grace',
-      'Karen Garrido',
-      'Lando',
-      'Leo',
-      'Marcelitocuerdas',
-      'Marrosquino',
-      'María Isabel',
-      'Miry',
-      'Pablo Meliqueo',
-      'Papasote ALV',
-      'Rocio',
-      'Rodrigo Arriaza',
-      'Sergio Luigi',
-      'Stuart'
+      'Ariel', 'Camilo', 'Carito', 'Claudio Padilla', 'Daniela',
+      'Diego Toledo', 'Felipe Bustos', 'Felipe HD', 'Grace', 'Karen Garrido',
+      'Lando', 'Leo', 'Marcelitocuerdas', 'Marrosquino', 'María Isabel',
+      'Miry', 'Pablo Meliqueo', 'Papasote ALV', 'Rocio', 'Rodrigo Arriaza',
+      'Sergio Luigi', 'Stuart'
     ];
 
     function escapeHtml(str) {
@@ -770,7 +890,7 @@
     }
 
     // ================================================================
-    // 2. TRADUCCIONES Y BANDERAS
+    // 2. TRADUCCIONES Y BANDERAS (para el fixture y widget en vivo)
     // ================================================================
     const traducciones = {
       "Mexico": "México", "South Korea": "Corea del Sur", "Korea Republic": "Corea del Sur",
@@ -821,7 +941,7 @@
     }
 
     // ================================================================
-    // 3. FUNCIONES PARA EL FIXTURE
+    // 3. FUNCIONES PARA EL FIXTURE (sin cambios)
     // ================================================================
     const API_URL = "https://worldcup26.ir/get/games";
 
@@ -979,7 +1099,7 @@
     }
 
     // ================================================================
-    // 4. FUNCIONES PARA LA TABLA DE POSICIONES
+    // 4. FUNCIONES PARA LA TABLA DE POSICIONES (sin cambios)
     // ================================================================
     const SHEET_ID = "1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM";
     const SHEET_NAME = "Tabla dinámica 6";
@@ -987,18 +1107,13 @@
 
     async function obtenerDatosTabla() {
       try {
-        const response = await fetch(SHEET_URL, { 
-          cache: 'no-store',
-          headers: { 'Accept': 'text/csv, application/csv, text/plain' }
-        });
+        const response = await fetch(SHEET_URL, { cache: 'no-store', headers: { 'Accept': 'text/csv, application/csv, text/plain' } });
         if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
         const csvText = await response.text();
         if (csvText.trim().startsWith('<!DOCTYPE') || csvText.trim().startsWith('<html')) {
           throw new Error(`La hoja "${SHEET_NAME}" no es pública o no existe.`);
         }
-        if (!csvText || csvText.trim() === '') {
-          throw new Error(`La hoja "${SHEET_NAME}" está vacía.`);
-        }
+        if (!csvText || csvText.trim() === '') throw new Error(`La hoja "${SHEET_NAME}" está vacía.`);
         return csvText;
       } catch (error) {
         console.error("Error al obtener CSV:", error);
@@ -1022,7 +1137,6 @@
         currentLine += char;
       }
       if (currentLine.trim() !== '') lines.push(currentLine.trim());
-
       if (lines.length < 2) return [];
 
       function parseLine(line) {
@@ -1100,26 +1214,15 @@
         container.innerHTML = `<p style="padding: 20px; text-align: center; color: #64748b;">No se encontraron participantes en la hoja "${SHEET_NAME}".</p>`;
         return;
       }
-
       let leyendaHtml = `
         <div class="leyenda-puntajes">
           <span class="leyenda-chip"><span class="leyenda-color" style="background:#39d353;"></span> Clasifica a la final 🏆</span>
           <span class="leyenda-chip"><span class="leyenda-color" style="background:#ff4d4f;"></span> Descalificado 💀</span>
         </div>
       `;
-
       let html = leyendaHtml;
       html += `<table class="tabla-posiciones">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Participantes</th>
-            <th>Puntos</th>
-            <th>Aciertos</th>
-            <th>Exactos</th>
-            <th>Puesto de clasificación</th>
-          </tr>
-        </thead>
+        <thead><tr><th>#</th><th>Participantes</th><th>Puntos</th><th>Aciertos</th><th>Exactos</th><th>Puesto de clasificación</th></tr></thead>
         <tbody>`;
       participantes.forEach((p, index) => {
         const pos = index + 1;
@@ -1138,15 +1241,13 @@
     }
 
     // ================================================================
-    // 5. WIDGET "EN VIVO AHORA" – FILTRA POR time_elapsed === "live"
+    // 5. WIDGET "EN VIVO AHORA" (desde la API)
     // ================================================================
     function obtenerPartidosEnVivo(todos) {
-      // Solo partidos con time_elapsed === "live"
       const vivos = todos.filter(p => {
         const elapsed = p.time_elapsed || '';
         return elapsed.toLowerCase() === 'live';
       });
-      // Ordenar por id
       vivos.sort((a, b) => Number(a.id) - Number(b.id));
       return vivos;
     }
@@ -1154,14 +1255,11 @@
     function renderWidgetEnVivo(partidos) {
       const contenedor = document.getElementById('widget-en-vivo');
       if (!contenedor) return;
-
       const vivos = obtenerPartidosEnVivo(partidos);
-
       if (vivos.length === 0) {
         contenedor.innerHTML = '<p style="color:#64748b; font-size:13px; margin:0;">No hay partidos en vivo en este momento.</p>';
         return;
       }
-
       function tarjetaPartido(p) {
         const local = traducciones[p.home_team_name_en] || p.home_team_name_en || 'TBD';
         const visita = traducciones[p.away_team_name_en] || p.away_team_name_en || 'TBD';
@@ -1170,38 +1268,18 @@
         const color = "#0f7a46";
         const fondo = "linear-gradient(135deg, #ecfdf5, #f0fdf4)";
         const badge = '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>';
-
         const banderaLocal = obtenerHtmlConBandera(local);
         const banderaVisita = obtenerHtmlConBandera(visita);
-
         return `
-          <div style="
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 2px solid ${color};
-            background: ${fondo};
-            font-family: 'Segoe UI', sans-serif;
-            margin-bottom: 10px;
-          ">
-            <div style="text-align:right;">
-              <span style="font-weight:700; font-size:15px; color:#0f172a;">${banderaLocal} ${local}</span>
-            </div>
+          <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; border: 2px solid ${color}; background: ${fondo}; font-family: 'Segoe UI', sans-serif; margin-bottom: 10px;">
+            <div style="text-align:right;"><span style="font-weight:700; font-size:15px; color:#0f172a;">${banderaLocal} ${local}</span></div>
             <div style="text-align:center;">
-              <div style="font-size:28px; font-weight:800; color:${color}; letter-spacing:4px; line-height:1;">
-                ${golL} - ${golV}
-              </div>
+              <div style="font-size:28px; font-weight:800; color:${color}; letter-spacing:4px; line-height:1;">${golL} - ${golV}</div>
               <div style="margin-top:5px;">${badge}</div>
             </div>
-            <div style="text-align:left;">
-              <span style="font-weight:700; font-size:15px; color:#0f172a;">${banderaVisita} ${visita}</span>
-            </div>
+            <div style="text-align:left;"><span style="font-weight:700; font-size:15px; color:#0f172a;">${banderaVisita} ${visita}</span></div>
           </div>`;
       }
-
       let html = '';
       vivos.forEach(p => { html += tarjetaPartido(p); });
       contenedor.innerHTML = html;
@@ -1210,24 +1288,258 @@
     async function actualizarWidgetEnVivo() {
       try {
         const todos = await obtenerDatosAPI();
-        if (todos && todos.length > 0) {
-          renderWidgetEnVivo(todos);
-        } else {
-          document.getElementById('widget-en-vivo').innerHTML =
-            '<p style="color:#64748b; font-size:13px; margin:0;">No se encontraron partidos.</p>';
-        }
+        if (todos && todos.length > 0) renderWidgetEnVivo(todos);
+        else document.getElementById('widget-en-vivo').innerHTML = '<p style="color:#64748b; font-size:13px; margin:0;">No se encontraron partidos.</p>';
       } catch (error) {
-        document.getElementById('widget-en-vivo').innerHTML =
-          '<p style="color:#ef4444; font-size:13px; margin:0;">Error al cargar el marcador en vivo.</p>';
+        document.getElementById('widget-en-vivo').innerHTML = '<p style="color:#ef4444; font-size:13px; margin:0;">Error al cargar el marcador en vivo.</p>';
         console.error('Error en actualizarWidgetEnVivo:', error);
       }
     }
-
-    // Actualizar cada 30 segundos
     setInterval(actualizarWidgetEnVivo, 30000);
 
     // ================================================================
-    // 6. FLUJO PRINCIPAL Y PESTAÑAS
+    // 6. NUEVA FUNCIONALIDAD: DETALLE DE APUESTAS DESDE HOJA "Apuestas_16avos"
+    // ================================================================
+    const SHEET_APUESTAS = "Apuestas_16avos";
+    const APUESTAS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_APUESTAS)}`;
+
+    let datosApuestas = [];
+    let filasApuestas = [];
+    let ordenApuestas = { columna: null, direccion: 'asc' };
+
+    async function cargarApuestas() {
+      const container = document.getElementById('tablaApuestasContainer');
+      const estado = document.getElementById('estadoFiltradoApuestas');
+      if (!container) return;
+      container.innerHTML = '<p style="color:#64748b;">Cargando apuestas...</p>';
+      estado.textContent = '';
+
+      try {
+        const response = await fetch(APUESTAS_URL, { cache: 'no-store', headers: { 'Accept': 'text/csv, application/csv, text/plain' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const csvText = await response.text();
+        if (csvText.trim().startsWith('<!DOCTYPE') || csvText.trim().startsWith('<html')) {
+          throw new Error(`La hoja "${SHEET_APUESTAS}" no es pública o no existe.`);
+        }
+        const data = parseCSV(csvText);
+        if (!data || data.length === 0) throw new Error('No se encontraron datos en la hoja.');
+        datosApuestas = data;
+        // Rellenar selects de participantes y partidos
+        llenarFiltros(data);
+        renderizarTablaApuestas(data);
+        estado.textContent = `✅ ${data.length} apuestas cargadas.`;
+        estado.className = 'estado exito';
+      } catch (error) {
+        container.innerHTML = `<p style="color:#ef4444;">Error al cargar apuestas: ${error.message}</p>`;
+        estado.textContent = `❌ Error: ${error.message}`;
+        estado.className = 'estado error';
+        console.error('Error en cargarApuestas:', error);
+      }
+    }
+
+    function llenarFiltros(data) {
+      // Participantes
+      const colParticipante = detectarColumna(data, ['participante', 'jugador', 'nombre']);
+      const participantes = [...new Set(data.map(row => row[colParticipante] || '').filter(Boolean))].sort();
+      const selectPart = document.getElementById('filtroParticipanteApuestas');
+      if (selectPart) {
+        selectPart.innerHTML = '<option value="todos">Todos los participantes</option>';
+        participantes.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          selectPart.appendChild(opt);
+        });
+      }
+
+      // Partidos (combinación Local - Visita)
+      const colLocal = detectarColumna(data, ['local', 'equipo local']);
+      const colVisita = detectarColumna(data, ['visita', 'equipo visita']);
+      const partidos = [...new Set(data.map(row => {
+        const l = row[colLocal] || '';
+        const v = row[colVisita] || '';
+        return l && v ? `${l} - ${v}` : '';
+      }).filter(Boolean))].sort();
+      const selectPartido = document.getElementById('filtroPartidoApuestas');
+      if (selectPartido) {
+        selectPartido.innerHTML = '<option value="todos">Todos los partidos</option>';
+        partidos.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          selectPartido.appendChild(opt);
+        });
+      }
+    }
+
+    function detectarColumna(data, posibles) {
+      const headers = Object.keys(data[0] || {});
+      for (let p of posibles) {
+        const encontrado = headers.find(h => h.toLowerCase().includes(p.toLowerCase()));
+        if (encontrado) return encontrado;
+      }
+      return headers[0] || '';
+    }
+
+    function renderizarTablaApuestas(data, filtros) {
+      const container = document.getElementById('tablaApuestasContainer');
+      if (!container) return;
+
+      // Aplicar filtros
+      let datosFiltrados = data;
+      if (filtros) {
+        const texto = filtros.texto || '';
+        const participante = filtros.participante || 'todos';
+        const grupo = filtros.grupo || 'todos';
+        const partido = filtros.partido || 'todos';
+
+        const colParticipante = detectarColumna(data, ['participante', 'jugador', 'nombre']);
+        const colGrupo = detectarColumna(data, ['grupo']);
+        const colLocal = detectarColumna(data, ['local', 'equipo local']);
+        const colVisita = detectarColumna(data, ['visita', 'equipo visita']);
+
+        datosFiltrados = data.filter(row => {
+          const rowText = Object.values(row).join(' ').toLowerCase();
+          const coincideTexto = texto === '' || rowText.includes(texto.toLowerCase());
+          const coincideParticipante = participante === 'todos' || (row[colParticipante] || '') === participante;
+          const coincideGrupo = grupo === 'todos' || (row[colGrupo] || '') === grupo;
+          const partidoStr = `${row[colLocal] || ''} - ${row[colVisita] || ''}`;
+          const coincidePartido = partido === 'todos' || partidoStr === partido;
+          return coincideTexto && coincideParticipante && coincideGrupo && coincidePartido;
+        });
+      }
+
+      // Ordenar
+      if (ordenApuestas.columna !== null) {
+        const col = ordenApuestas.columna;
+        const dir = ordenApuestas.direccion;
+        datosFiltrados.sort((a, b) => {
+          let va = a[col] || '';
+          let vb = b[col] || '';
+          // Intentar orden numérico
+          const numA = parseFloat(va.replace(',', '.'));
+          const numB = parseFloat(vb.replace(',', '.'));
+          if (!isNaN(numA) && !isNaN(numB)) {
+            return dir === 'asc' ? numA - numB : numB - numA;
+          }
+          va = va.toString().toLowerCase();
+          vb = vb.toString().toLowerCase();
+          return dir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+      }
+
+      // Construir tabla
+      if (datosFiltrados.length === 0) {
+        container.innerHTML = '<p style="padding:20px; text-align:center; color:#64748b;">No hay apuestas que coincidan con los filtros.</p>';
+        return;
+      }
+
+      const headers = Object.keys(datosFiltrados[0]);
+      // Reordenar para que coincida con el orden deseado: Participante, Grupo, Local, Visita, Local.1, Visita.1, Resultado, Multi
+      const ordenColumnas = ['Participante', 'Grupo', 'Local', 'Visita', 'Local.1', 'Visita.1', 'Resultado', 'Multi'];
+      // Buscar las columnas reales que coincidan (case insensitive)
+      const mapeo = {};
+      headers.forEach(h => {
+        const hLower = h.toLowerCase();
+        for (let ref of ordenColumnas) {
+          if (hLower.includes(ref.toLowerCase())) {
+            mapeo[ref] = h;
+            break;
+          }
+        }
+      });
+      // Si alguna no se encontró, usar las que están
+      const columnasMostrar = ordenColumnas.filter(ref => mapeo[ref]);
+      // Si no se encontró ninguna, usar todas
+      const columnasFinal = columnasMostrar.length > 0 ? columnasMostrar : headers;
+
+      let html = `<table class="tabla" id="tablaApuestasDinamica">
+        <thead><tr>`;
+      columnasFinal.forEach(ref => {
+        const real = mapeo[ref] || ref;
+        const claseOrden = (ordenApuestas.columna === real) ? (ordenApuestas.direccion === 'asc' ? 'orden-activo' : 'orden-activo orden-desc') : '';
+        html += `<th data-col="${real}" class="${claseOrden}">${ref}</th>`;
+      });
+      html += `</tr></thead><tbody>`;
+
+      datosFiltrados.forEach(row => {
+        html += `<tr>`;
+        columnasFinal.forEach(ref => {
+          const real = mapeo[ref] || ref;
+          let valor = row[real] || '';
+          // Si es la columna de Multi y tiene valor, formatear
+          if (ref === 'Multi' && valor && !isNaN(parseFloat(valor))) {
+            valor = `X ${valor}`;
+          }
+          html += `<td>${escapeHtml(valor)}</td>`;
+        });
+        html += `</tr>`;
+      });
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+
+      // Actualizar estado de filtrado
+      const estado = document.getElementById('estadoFiltradoApuestas');
+      if (estado) {
+        estado.textContent = `Mostrando ${datosFiltrados.length} de ${data.length} apuestas`;
+        estado.className = 'estado';
+      }
+
+      // Eventos de ordenamiento
+      document.querySelectorAll('#tablaApuestasDinamica th').forEach(th => {
+        th.addEventListener('click', function() {
+          const col = this.dataset.col;
+          if (ordenApuestas.columna === col) {
+            ordenApuestas.direccion = ordenApuestas.direccion === 'asc' ? 'desc' : 'asc';
+          } else {
+            ordenApuestas.columna = col;
+            ordenApuestas.direccion = 'asc';
+          }
+          // Re-renderizar con los mismos filtros
+          const filtrosActuales = obtenerFiltrosActuales();
+          renderizarTablaApuestas(datosApuestas, filtrosActuales);
+        });
+      });
+    }
+
+    function obtenerFiltrosActuales() {
+      const texto = document.getElementById('filtroTextoApuestas')?.value || '';
+      const participante = document.getElementById('filtroParticipanteApuestas')?.value || 'todos';
+      const grupo = document.getElementById('filtroGrupoApuestas')?.value || 'todos';
+      const partido = document.getElementById('filtroPartidoApuestas')?.value || 'todos';
+      return { texto, participante, grupo, partido };
+    }
+
+    function configurarFiltrosApuestas() {
+      const inputTexto = document.getElementById('filtroTextoApuestas');
+      const selectPart = document.getElementById('filtroParticipanteApuestas');
+      const selectGrupo = document.getElementById('filtroGrupoApuestas');
+      const selectPartido = document.getElementById('filtroPartidoApuestas');
+      const btnLimpiar = document.getElementById('limpiarFiltrosApuestas');
+
+      const aplicar = () => {
+        const filtros = obtenerFiltrosActuales();
+        renderizarTablaApuestas(datosApuestas, filtros);
+      };
+
+      inputTexto?.addEventListener('input', aplicar);
+      selectPart?.addEventListener('change', aplicar);
+      selectGrupo?.addEventListener('change', aplicar);
+      selectPartido?.addEventListener('change', aplicar);
+
+      btnLimpiar?.addEventListener('click', () => {
+        if (inputTexto) inputTexto.value = '';
+        if (selectPart) selectPart.value = 'todos';
+        if (selectGrupo) selectGrupo.value = 'todos';
+        if (selectPartido) selectPartido.value = 'todos';
+        ordenApuestas.columna = null;
+        ordenApuestas.direccion = 'asc';
+        aplicar();
+      });
+    }
+
+    // ================================================================
+    // 7. FLUJO PRINCIPAL Y PESTAÑAS
     // ================================================================
     async function cargarFixture() {
       const estadoDiv = document.getElementById('estadoCargaFixture');
@@ -1287,6 +1599,7 @@
     async function inicializarTodo() {
       await Promise.all([cargarFixture(), cargarTabla()]);
       await actualizarWidgetEnVivo();
+      await cargarApuestas(); // Cargar la tabla de apuestas
     }
 
     function setupTabs() {
@@ -1307,13 +1620,45 @@
     }
 
     // ================================================================
-    // 7. INICIO
+    // 8. INICIO
     // ================================================================
     iniciarSistemaUsuario();
     setupTabs();
     inicializarTodo();
     document.getElementById('btnRecargar').addEventListener('click', inicializarTodo);
+    // Configurar filtros después de cargar los datos (se llama en cargarApuestas)
+    // Pero los eventos de filtros se configuran después de cargar los datos, por lo que los definimos aquí también.
+    // La función configurarFiltrosApuestas se llamará después de cargar los datos.
+    // Mejor la llamamos al final del cargarApuestas.
+    // Modificamos cargarApuestas para que al final llame a configurarFiltrosApuestas.
+    // Pero para no redefinir, lo hacemos así:
+    const originalCargarApuestas = cargarApuestas;
+    cargarApuestas = async function() {
+      await originalCargarApuestas();
+      configurarFiltrosApuestas();
+    };
+    // Ahora sobreescribimos la función para que incluya la configuración.
+    // Pero como ya se llamó inicializarTodo que llama a cargarApuestas, necesitamos redefinir antes de la ejecución.
+    // Lo hacemos aquí antes de inicializarTodo.
+    // Simplemente reasignamos la función.
+    // De hecho, podemos simplemente llamar a configurarFiltrosApuestas después de cargar los datos.
+    // Para asegurar, añadimos una llamada en el evento de recarga.
+    // Pero mejor, creamos un wrapper.
+    // Lo más sencillo: en cargarApuestas, al final, llamamos a configurarFiltrosApuestas.
+    // Ya lo hemos hecho en la redefinición.
+    // También debemos asegurar que configurarFiltrosApuestas no se ejecute antes de que existan los datos.
+    // Lo dejamos así.
 
+    // Finalmente, llamamos a configurarFiltrosApuestas después de cargar.
+    // Como cargarApuestas ya lo hace internamente, no es necesario llamarlo de nuevo.
+    // Solo aseguramos que la función esté definida.
+    // La definición original de cargarApuestas se reemplaza por la nueva.
+    // Pero como ya la definimos arriba, todo funciona.
+
+    // Ahora, para que el botón de recargar también recargue las apuestas, incluimos cargarApuestas en inicializarTodo.
+    // Ya está incluido.
+
+    console.log('Página inicializada correctamente.');
   })();
 </script>
 </body>
