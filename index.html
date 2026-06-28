@@ -722,7 +722,7 @@
     <div id="tablaContainer"></div>
   </section>
 
-  <!-- ===== BLOQUE: DETALLE COMPLETO DE APUESTAS ===== -->
+  <!-- ===== BLOQUE: DETALLE COMPLETO DE APUESTAS (sin penales) ===== -->
   <details class='bloque bloque-colapsable' id='bloqueDetalleApuestas'>
     <summary>Detalle completo de apuestas 🤑</summary>
     <div class='bloque-contenido'>
@@ -1300,7 +1300,7 @@
     setInterval(actualizarWidgetEnVivo, 30000);
 
     // ================================================================
-    // 6. DETALLE DE APUESTAS DESDE HOJA "Apuestas_16avos"
+    // 6. DETALLE DE APUESTAS DESDE HOJA "Apuestas_16avos" (SIN PENALES)
     // ================================================================
     const SHEET_APUESTAS = "Apuestas_16avos";
     const APUESTAS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_APUESTAS)}`;
@@ -1308,7 +1308,7 @@
     let datosApuestas = [];
     let ordenApuestas = { columna: null, direccion: 'asc' };
 
-    // Definir las columnas que queremos mostrar y sus posibles nombres en la hoja
+    // Columnas a mostrar (sin penales)
     const columnasDeseadas = [
       { nombre: 'Participante', posibles: ['participante', 'jugador', 'nombre'] },
       { nombre: 'Ronda', posibles: ['ronda', 'round'] },
@@ -1316,9 +1316,7 @@
       { nombre: 'Visita', posibles: ['visita', 'equipo visita'] },
       { nombre: 'Goles Local', posibles: ['goles local', 'gol local', 'local.1'] },
       { nombre: 'Goles Visita', posibles: ['goles visita', 'gol visita', 'visita.1'] },
-      { nombre: 'Multi', posibles: ['multi', 'multiplicador'] },
-      { nombre: 'Penal Local', posibles: ['penal local', 'penales local', 'penal_local', 'penal-l', 'penal', 'penales'] },
-      { nombre: 'Penal Visita', posibles: ['penal visita', 'penales visita', 'penal_visita', 'penal-v', 'penal visita'] }
+      { nombre: 'Multi', posibles: ['multi', 'multiplicador'] }
     ];
 
     function detectarColumnas(data) {
@@ -1326,28 +1324,12 @@
       const headers = Object.keys(data[0]);
       console.log('📋 Encabezados detectados en la hoja:', headers);
       const mapeo = {};
-
-      // Primero, buscar coincidencias por lista de posibles
       columnasDeseadas.forEach(col => {
         const encontrado = headers.find(h => 
           col.posibles.some(p => h.toLowerCase().includes(p.toLowerCase()))
         );
         mapeo[col.nombre] = encontrado || null;
       });
-
-      // Si alguna columna de penal no se encontró, intentar buscar por "penal"
-      if (!mapeo['Penal Local'] || !mapeo['Penal Visita']) {
-        const penalHeaders = headers.filter(h => h.toLowerCase().includes('penal'));
-        if (penalHeaders.length >= 2) {
-          // Asignar el primero a Local y el segundo a Visita (según orden de aparición)
-          mapeo['Penal Local'] = penalHeaders[0];
-          mapeo['Penal Visita'] = penalHeaders[1];
-        } else if (penalHeaders.length === 1) {
-          // Si solo hay una columna de penal, asignarla a Local (podría ser visita, pero al menos se muestra)
-          mapeo['Penal Local'] = penalHeaders[0];
-        }
-      }
-
       console.log('🔍 Mapeo de columnas:', mapeo);
       return mapeo;
     }
