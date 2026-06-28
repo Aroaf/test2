@@ -606,7 +606,7 @@
     /* Filtros y tabla de apuestas */
     .filtros {
       display: grid;
-      grid-template-columns: 1.2fr 1.1fr 0.9fr 1.3fr auto;
+      grid-template-columns: 1.2fr 1.1fr 1.3fr auto;
       gap: 10px;
       margin-bottom: 12px;
       align-items: center;
@@ -722,7 +722,7 @@
     <div id="tablaContainer"></div>
   </section>
 
-  <!-- ===== NUEVO BLOQUE: DETALLE COMPLETO DE APUESTAS (desde hoja Apuestas_16avos) ===== -->
+  <!-- ===== BLOQUE: DETALLE COMPLETO DE APUESTAS ===== -->
   <details class='bloque bloque-colapsable' id='bloqueDetalleApuestas'>
     <summary>Detalle completo de apuestas 🤑</summary>
     <div class='bloque-contenido'>
@@ -731,12 +731,8 @@
         <select id='filtroParticipanteApuestas'>
           <option value='todos'>Todos los participantes</option>
         </select>
-        <select id='filtroGrupoApuestas'>
-          <option value='todos'>Todos los grupos</option>
-          <option value='A'>A</option><option value='B'>B</option><option value='C'>C</option>
-          <option value='D'>D</option><option value='E'>E</option><option value='F'>F</option>
-          <option value='G'>G</option><option value='H'>H</option><option value='I'>I</option>
-          <option value='J'>J</option><option value='K'>K</option><option value='L'>L</option>
+        <select id='filtroRondaApuestas'>
+          <option value='todos'>Todas las rondas</option>
         </select>
         <select id='filtroPartidoApuestas'>
           <option value='todos'>Todos los partidos</option>
@@ -762,7 +758,7 @@
 <script>
   (function() {
     // ================================================================
-    // 1. SISTEMA DE USUARIO Y VISITAS (sin cambios)
+    // 1. SISTEMA DE USUARIO Y VISITAS
     // ================================================================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-XI-wqSxdXUhDbRw0mGI_7vA29pfB92PY1KhqsyFFTmydCBQWY39ccQzo_6xWtbVTwg/exec';
     const STORAGE_KEY = 'usuario_actual_polla_mundial';
@@ -896,7 +892,7 @@
     }
 
     // ================================================================
-    // 2. TRADUCCIONES Y BANDERAS (para fixture y widget en vivo)
+    // 2. TRADUCCIONES Y BANDERAS
     // ================================================================
     const traducciones = {
       "Mexico": "México", "South Korea": "Corea del Sur", "Korea Republic": "Corea del Sur",
@@ -947,7 +943,7 @@
     }
 
     // ================================================================
-    // 3. FUNCIONES PARA EL FIXTURE (sin cambios)
+    // 3. FUNCIONES PARA EL FIXTURE
     // ================================================================
     const API_URL = "https://worldcup26.ir/get/games";
 
@@ -1105,7 +1101,7 @@
     }
 
     // ================================================================
-    // 4. FUNCIONES PARA LA TABLA DE POSICIONES (sin cambios)
+    // 4. FUNCIONES PARA LA TABLA DE POSICIONES
     // ================================================================
     const SHEET_ID = "1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM";
     const SHEET_NAME = "Tabla dinámica 6";
@@ -1247,7 +1243,7 @@
     }
 
     // ================================================================
-    // 5. WIDGET "EN VIVO AHORA" (desde la API)
+    // 5. WIDGET "EN VIVO AHORA"
     // ================================================================
     function obtenerPartidosEnVivo(todos) {
       const vivos = todos.filter(p => {
@@ -1304,17 +1300,15 @@
     setInterval(actualizarWidgetEnVivo, 30000);
 
     // ================================================================
-    // 6. NUEVA FUNCIONALIDAD: DETALLE DE APUESTAS DESDE HOJA "Apuestas_16avos"
-    //    Mostrando columnas: Participante, Ronda, Local, Visita, Goles Local, Goles Visita, Multi, Penal Local, Penal Visita
+    // 6. DETALLE DE APUESTAS DESDE HOJA "Apuestas_16avos"
     // ================================================================
     const SHEET_APUESTAS = "Apuestas_16avos";
     const APUESTAS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_APUESTAS)}`;
 
     let datosApuestas = [];
-    let filasApuestas = [];
     let ordenApuestas = { columna: null, direccion: 'asc' };
 
-    // Definir el orden y mapeo de columnas deseadas
+    // Definir las columnas que queremos mostrar y sus posibles nombres en la hoja
     const columnasDeseadas = [
       { nombre: 'Participante', posibles: ['participante', 'jugador', 'nombre'] },
       { nombre: 'Ronda', posibles: ['ronda', 'round'] },
@@ -1323,13 +1317,14 @@
       { nombre: 'Goles Local', posibles: ['goles local', 'gol local', 'local.1'] },
       { nombre: 'Goles Visita', posibles: ['goles visita', 'gol visita', 'visita.1'] },
       { nombre: 'Multi', posibles: ['multi', 'multiplicador'] },
-      { nombre: 'Penal Local', posibles: ['penal local', 'penales local'] },
-      { nombre: 'Penal Visita', posibles: ['penal visita', 'penales visita'] }
+      { nombre: 'Penal Local', posibles: ['penal local', 'penales local', 'penal_local', 'penal-l', 'penal'] },
+      { nombre: 'Penal Visita', posibles: ['penal visita', 'penales visita', 'penal_visita', 'penal-v'] }
     ];
 
     function detectarColumnas(data) {
       if (!data || data.length === 0) return {};
       const headers = Object.keys(data[0]);
+      console.log('📋 Encabezados detectados en la hoja:', headers);
       const mapeo = {};
       columnasDeseadas.forEach(col => {
         const encontrado = headers.find(h => 
@@ -1337,6 +1332,7 @@
         );
         mapeo[col.nombre] = encontrado || null;
       });
+      console.log('🔍 Mapeo de columnas:', mapeo);
       return mapeo;
     }
 
@@ -1358,16 +1354,13 @@
         const data = parseCSV(csvText);
         if (!data || data.length === 0) throw new Error('No se encontraron datos en la hoja.');
         datosApuestas = data;
-        // Detectar columnas
-        const mapeoColumnas = detectarColumnas(data);
-        // Guardar el mapeo para usarlo en el renderizado
-        window._mapeoApuestas = mapeoColumnas;
-        // Rellenar filtros
-        llenarFiltros(data, mapeoColumnas);
-        renderizarTablaApuestas(data, null, mapeoColumnas);
+        const mapeo = detectarColumnas(data);
+        window._mapeoApuestas = mapeo;
+        // Llenar filtros
+        llenarFiltros(data, mapeo);
+        renderizarTablaApuestas(data, null, mapeo);
         estado.textContent = `✅ ${data.length} apuestas cargadas.`;
         estado.className = 'estado exito';
-        // Configurar eventos de filtros (solo una vez)
         configurarFiltrosApuestas();
       } catch (error) {
         container.innerHTML = `<p style="color:#ef4444;">Error al cargar apuestas: ${error.message}</p>`;
@@ -1389,6 +1382,20 @@
           opt.value = p;
           opt.textContent = p;
           selectPart.appendChild(opt);
+        });
+      }
+
+      // Rondas
+      const colRonda = mapeo['Ronda'];
+      const rondas = [...new Set(data.map(row => row[colRonda] || '').filter(Boolean))].sort();
+      const selectRonda = document.getElementById('filtroRondaApuestas');
+      if (selectRonda) {
+        selectRonda.innerHTML = '<option value="todos">Todas las rondas</option>';
+        rondas.forEach(r => {
+          const opt = document.createElement('option');
+          opt.value = r;
+          opt.textContent = r;
+          selectRonda.appendChild(opt);
         });
       }
 
@@ -1422,11 +1429,11 @@
       if (filtros) {
         const texto = filtros.texto || '';
         const participante = filtros.participante || 'todos';
-        const grupo = filtros.grupo || 'todos';
+        const ronda = filtros.ronda || 'todos';
         const partido = filtros.partido || 'todos';
 
         const colPart = mapeo['Participante'];
-        const colGrupo = detectarColumnaGrupo(data); // detectar grupo para filtro
+        const colRonda = mapeo['Ronda'];
         const colLocal = mapeo['Local'];
         const colVisita = mapeo['Visita'];
 
@@ -1434,10 +1441,10 @@
           const rowText = Object.values(row).join(' ').toLowerCase();
           const coincideTexto = texto === '' || rowText.includes(texto.toLowerCase());
           const coincideParticipante = participante === 'todos' || (row[colPart] || '') === participante;
-          const coincideGrupo = grupo === 'todos' || (row[colGrupo] || '') === grupo;
+          const coincideRonda = ronda === 'todos' || (row[colRonda] || '') === ronda;
           const partidoStr = `${row[colLocal] || ''} - ${row[colVisita] || ''}`;
           const coincidePartido = partido === 'todos' || partidoStr === partido;
-          return coincideTexto && coincideParticipante && coincideGrupo && coincidePartido;
+          return coincideTexto && coincideParticipante && coincideRonda && coincidePartido;
         });
       }
 
@@ -1448,7 +1455,6 @@
         datosFiltrados.sort((a, b) => {
           let va = a[col] || '';
           let vb = b[col] || '';
-          // Intentar orden numérico
           const numA = parseFloat(va.replace(',', '.'));
           const numB = parseFloat(vb.replace(',', '.'));
           if (!isNaN(numA) && !isNaN(numB)) {
@@ -1465,7 +1471,7 @@
         return;
       }
 
-      // Construir tabla con las columnas deseadas
+      // Construir tabla
       const columnasMostrar = columnasDeseadas.map(c => c.nombre);
       let html = `<table class="tabla" id="tablaApuestasDinamica">
         <thead><tr>`;
@@ -1481,7 +1487,6 @@
         columnasMostrar.forEach(nombre => {
           const real = mapeo[nombre];
           let valor = row[real] || '';
-          // Formatear Multi si es numérico
           if (nombre === 'Multi' && valor && !isNaN(parseFloat(valor))) {
             valor = `X ${valor}`;
           }
@@ -1492,7 +1497,6 @@
       html += `</tbody></table>`;
       container.innerHTML = html;
 
-      // Actualizar estado de filtrado
       const estado = document.getElementById('estadoFiltradoApuestas');
       if (estado) {
         estado.textContent = `Mostrando ${datosFiltrados.length} de ${data.length} apuestas`;
@@ -1515,24 +1519,18 @@
       });
     }
 
-    function detectarColumnaGrupo(data) {
-      if (!data || data.length === 0) return '';
-      const headers = Object.keys(data[0]);
-      return headers.find(h => h.toLowerCase().includes('grupo')) || '';
-    }
-
     function obtenerFiltrosActuales() {
       const texto = document.getElementById('filtroTextoApuestas')?.value || '';
       const participante = document.getElementById('filtroParticipanteApuestas')?.value || 'todos';
-      const grupo = document.getElementById('filtroGrupoApuestas')?.value || 'todos';
+      const ronda = document.getElementById('filtroRondaApuestas')?.value || 'todos';
       const partido = document.getElementById('filtroPartidoApuestas')?.value || 'todos';
-      return { texto, participante, grupo, partido };
+      return { texto, participante, ronda, partido };
     }
 
     function configurarFiltrosApuestas() {
       const inputTexto = document.getElementById('filtroTextoApuestas');
       const selectPart = document.getElementById('filtroParticipanteApuestas');
-      const selectGrupo = document.getElementById('filtroGrupoApuestas');
+      const selectRonda = document.getElementById('filtroRondaApuestas');
       const selectPartido = document.getElementById('filtroPartidoApuestas');
       const btnLimpiar = document.getElementById('limpiarFiltrosApuestas');
 
@@ -1543,13 +1541,13 @@
 
       inputTexto?.addEventListener('input', aplicar);
       selectPart?.addEventListener('change', aplicar);
-      selectGrupo?.addEventListener('change', aplicar);
+      selectRonda?.addEventListener('change', aplicar);
       selectPartido?.addEventListener('change', aplicar);
 
       btnLimpiar?.addEventListener('click', () => {
         if (inputTexto) inputTexto.value = '';
         if (selectPart) selectPart.value = 'todos';
-        if (selectGrupo) selectGrupo.value = 'todos';
+        if (selectRonda) selectRonda.value = 'todos';
         if (selectPartido) selectPartido.value = 'todos';
         ordenApuestas.columna = null;
         ordenApuestas.direccion = 'asc';
@@ -1558,7 +1556,7 @@
     }
 
     // ================================================================
-    // 7. FLUJO PRINCIPAL Y PESTAÑAS
+    // 7. FLUJO PRINCIPAL
     // ================================================================
     async function cargarFixture() {
       const estadoDiv = document.getElementById('estadoCargaFixture');
