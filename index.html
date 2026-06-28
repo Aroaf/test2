@@ -548,7 +548,7 @@
       }
     }
 
-    /* Estilos para el bloque "En vivo ahora" y "Detalle de apuestas" */
+    /* Estilos para bloques */
     .bloque {
       background: var(--tarjeta);
       border: 1px solid rgba(255, 255, 255, 0.8);
@@ -675,6 +675,12 @@
       font-size: 13px;
       color: #3f4d63;
       font-weight: 600;
+    }
+    .estado.error {
+      color: #991b1b;
+    }
+    .estado.exito {
+      color: #166534;
     }
   </style>
 </head>
@@ -890,7 +896,7 @@
     }
 
     // ================================================================
-    // 2. TRADUCCIONES Y BANDERAS (para el fixture y widget en vivo)
+    // 2. TRADUCCIONES Y BANDERAS (para fixture y widget en vivo)
     // ================================================================
     const traducciones = {
       "Mexico": "México", "South Korea": "Corea del Sur", "Korea Republic": "Corea del Sur",
@@ -1299,6 +1305,7 @@
 
     // ================================================================
     // 6. NUEVA FUNCIONALIDAD: DETALLE DE APUESTAS DESDE HOJA "Apuestas_16avos"
+    //    Mostrando columnas: Participante, Ronda, Local, Visita, Goles Local, Goles Visita, Multi, Penal Local, Penal Visita
     // ================================================================
     const SHEET_APUESTAS = "Apuestas_16avos";
     const APUESTAS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_APUESTAS)}`;
@@ -1307,12 +1314,39 @@
     let filasApuestas = [];
     let ordenApuestas = { columna: null, direccion: 'asc' };
 
+    // Definir el orden y mapeo de columnas deseadas
+    const columnasDeseadas = [
+      { nombre: 'Participante', posibles: ['participante', 'jugador', 'nombre'] },
+      { nombre: 'Ronda', posibles: ['ronda', 'round'] },
+      { nombre: 'Local', posibles: ['local', 'equipo local'] },
+      { nombre: 'Visita', posibles: ['visita', 'equipo visita'] },
+      { nombre: 'Goles Local', posibles: ['goles local', 'gol local', 'local.1'] },
+      { nombre: 'Goles Visita', posibles: ['goles visita', 'gol visita', 'visita.1'] },
+      { nombre: 'Multi', posibles: ['multi', 'multiplicador'] },
+      { nombre: 'Penal Local', posibles: ['penal local', 'penales local'] },
+      { nombre: 'Penal Visita', posibles: ['penal visita', 'penales visita'] }
+    ];
+
+    function detectarColumnas(data) {
+      if (!data || data.length === 0) return {};
+      const headers = Object.keys(data[0]);
+      const mapeo = {};
+      columnasDeseadas.forEach(col => {
+        const encontrado = headers.find(h => 
+          col.posibles.some(p => h.toLowerCase().includes(p.toLowerCase()))
+        );
+        mapeo[col.nombre] = encontrado || null;
+      });
+      return mapeo;
+    }
+
     async function cargarApuestas() {
       const container = document.getElementById('tablaApuestasContainer');
       const estado = document.getElementById('estadoFiltradoApuestas');
       if (!container) return;
       container.innerHTML = '<p style="color:#64748b;">Cargando apuestas...</p>';
       estado.textContent = '';
+      estado.className = 'estado';
 
       try {
         const response = await fetch(APUESTAS_URL, { cache: 'no-store', headers: { 'Accept': 'text/csv, application/csv, text/plain' } });
@@ -1324,11 +1358,17 @@
         const data = parseCSV(csvText);
         if (!data || data.length === 0) throw new Error('No se encontraron datos en la hoja.');
         datosApuestas = data;
-        // Rellenar selects de participantes y partidos
-        llenarFiltros(data);
-        renderizarTablaApuestas(data);
+        // Detectar columnas
+        const mapeoColumnas = detectarColumnas(data);
+        // Guardar el mapeo para usarlo en el renderizado
+        window._mapeoApuestas = mapeoColumnas;
+        // Rellenar filtros
+        llenarFiltros(data, mapeoColumnas);
+        renderizarTablaApuestas(data, null, mapeoColumnas);
         estado.textContent = `✅ ${data.length} apuestas cargadas.`;
         estado.className = 'estado exito';
+        // Configurar eventos de filtros (solo una vez)
+        configurarFiltrosApuestas();
       } catch (error) {
         container.innerHTML = `<p style="color:#ef4444;">Error al cargar apuestas: ${error.message}</p>`;
         estado.textContent = `❌ Error: ${error.message}`;
@@ -1337,10 +1377,10 @@
       }
     }
 
-    function llenarFiltros(data) {
+    function llenarFiltros(data, mapeo) {
       // Participantes
-      const colParticipante = detectarColumna(data, ['participante', 'jugador', 'nombre']);
-      const participantes = [...new Set(data.map(row => row[colParticipante] || '').filter(Boolean))].sort();
+      const colPart = mapeo['Participante'];
+      const participantes = [...new Set(data.map(row => row[colPart] || '').filter(Boolean))].sort();
       const selectPart = document.getElementById('filtroParticipanteApuestas');
       if (selectPart) {
         selectPart.innerHTML = '<option value="todos">Todos los participantes</option>';
@@ -1352,9 +1392,9 @@
         });
       }
 
-      // Partidos (combinación Local - Visita)
-      const colLocal = detectarColumna(data, ['local', 'equipo local']);
-      const colVisita = detectarColumna(data, ['visita', 'equipo visita']);
+      // Partidos (Local - Visita)
+      const colLocal = mapeo['Local'];
+      const colVisita = mapeo['Visita'];
       const partidos = [...new Set(data.map(row => {
         const l = row[colLocal] || '';
         const v = row[colVisita] || '';
@@ -1372,18 +1412,10 @@
       }
     }
 
-    function detectarColumna(data, posibles) {
-      const headers = Object.keys(data[0] || {});
-      for (let p of posibles) {
-        const encontrado = headers.find(h => h.toLowerCase().includes(p.toLowerCase()));
-        if (encontrado) return encontrado;
-      }
-      return headers[0] || '';
-    }
-
-    function renderizarTablaApuestas(data, filtros) {
+    function renderizarTablaApuestas(data, filtros, mapeo) {
       const container = document.getElementById('tablaApuestasContainer');
       if (!container) return;
+      if (!mapeo) mapeo = window._mapeoApuestas || detectarColumnas(data);
 
       // Aplicar filtros
       let datosFiltrados = data;
@@ -1393,15 +1425,15 @@
         const grupo = filtros.grupo || 'todos';
         const partido = filtros.partido || 'todos';
 
-        const colParticipante = detectarColumna(data, ['participante', 'jugador', 'nombre']);
-        const colGrupo = detectarColumna(data, ['grupo']);
-        const colLocal = detectarColumna(data, ['local', 'equipo local']);
-        const colVisita = detectarColumna(data, ['visita', 'equipo visita']);
+        const colPart = mapeo['Participante'];
+        const colGrupo = detectarColumnaGrupo(data); // detectar grupo para filtro
+        const colLocal = mapeo['Local'];
+        const colVisita = mapeo['Visita'];
 
         datosFiltrados = data.filter(row => {
           const rowText = Object.values(row).join(' ').toLowerCase();
           const coincideTexto = texto === '' || rowText.includes(texto.toLowerCase());
-          const coincideParticipante = participante === 'todos' || (row[colParticipante] || '') === participante;
+          const coincideParticipante = participante === 'todos' || (row[colPart] || '') === participante;
           const coincideGrupo = grupo === 'todos' || (row[colGrupo] || '') === grupo;
           const partidoStr = `${row[colLocal] || ''} - ${row[colVisita] || ''}`;
           const coincidePartido = partido === 'todos' || partidoStr === partido;
@@ -1428,47 +1460,29 @@
         });
       }
 
-      // Construir tabla
       if (datosFiltrados.length === 0) {
         container.innerHTML = '<p style="padding:20px; text-align:center; color:#64748b;">No hay apuestas que coincidan con los filtros.</p>';
         return;
       }
 
-      const headers = Object.keys(datosFiltrados[0]);
-      // Reordenar para que coincida con el orden deseado: Participante, Grupo, Local, Visita, Local.1, Visita.1, Resultado, Multi
-      const ordenColumnas = ['Participante', 'Grupo', 'Local', 'Visita', 'Local.1', 'Visita.1', 'Resultado', 'Multi'];
-      // Buscar las columnas reales que coincidan (case insensitive)
-      const mapeo = {};
-      headers.forEach(h => {
-        const hLower = h.toLowerCase();
-        for (let ref of ordenColumnas) {
-          if (hLower.includes(ref.toLowerCase())) {
-            mapeo[ref] = h;
-            break;
-          }
-        }
-      });
-      // Si alguna no se encontró, usar las que están
-      const columnasMostrar = ordenColumnas.filter(ref => mapeo[ref]);
-      // Si no se encontró ninguna, usar todas
-      const columnasFinal = columnasMostrar.length > 0 ? columnasMostrar : headers;
-
+      // Construir tabla con las columnas deseadas
+      const columnasMostrar = columnasDeseadas.map(c => c.nombre);
       let html = `<table class="tabla" id="tablaApuestasDinamica">
         <thead><tr>`;
-      columnasFinal.forEach(ref => {
-        const real = mapeo[ref] || ref;
+      columnasMostrar.forEach(nombre => {
+        const real = mapeo[nombre];
         const claseOrden = (ordenApuestas.columna === real) ? (ordenApuestas.direccion === 'asc' ? 'orden-activo' : 'orden-activo orden-desc') : '';
-        html += `<th data-col="${real}" class="${claseOrden}">${ref}</th>`;
+        html += `<th data-col="${real}" class="${claseOrden}">${nombre}</th>`;
       });
       html += `</tr></thead><tbody>`;
 
       datosFiltrados.forEach(row => {
         html += `<tr>`;
-        columnasFinal.forEach(ref => {
-          const real = mapeo[ref] || ref;
+        columnasMostrar.forEach(nombre => {
+          const real = mapeo[nombre];
           let valor = row[real] || '';
-          // Si es la columna de Multi y tiene valor, formatear
-          if (ref === 'Multi' && valor && !isNaN(parseFloat(valor))) {
+          // Formatear Multi si es numérico
+          if (nombre === 'Multi' && valor && !isNaN(parseFloat(valor))) {
             valor = `X ${valor}`;
           }
           html += `<td>${escapeHtml(valor)}</td>`;
@@ -1495,11 +1509,16 @@
             ordenApuestas.columna = col;
             ordenApuestas.direccion = 'asc';
           }
-          // Re-renderizar con los mismos filtros
           const filtrosActuales = obtenerFiltrosActuales();
-          renderizarTablaApuestas(datosApuestas, filtrosActuales);
+          renderizarTablaApuestas(datosApuestas, filtrosActuales, window._mapeoApuestas);
         });
       });
+    }
+
+    function detectarColumnaGrupo(data) {
+      if (!data || data.length === 0) return '';
+      const headers = Object.keys(data[0]);
+      return headers.find(h => h.toLowerCase().includes('grupo')) || '';
     }
 
     function obtenerFiltrosActuales() {
@@ -1519,7 +1538,7 @@
 
       const aplicar = () => {
         const filtros = obtenerFiltrosActuales();
-        renderizarTablaApuestas(datosApuestas, filtros);
+        renderizarTablaApuestas(datosApuestas, filtros, window._mapeoApuestas);
       };
 
       inputTexto?.addEventListener('input', aplicar);
@@ -1599,7 +1618,7 @@
     async function inicializarTodo() {
       await Promise.all([cargarFixture(), cargarTabla()]);
       await actualizarWidgetEnVivo();
-      await cargarApuestas(); // Cargar la tabla de apuestas
+      await cargarApuestas();
     }
 
     function setupTabs() {
@@ -1626,39 +1645,7 @@
     setupTabs();
     inicializarTodo();
     document.getElementById('btnRecargar').addEventListener('click', inicializarTodo);
-    // Configurar filtros después de cargar los datos (se llama en cargarApuestas)
-    // Pero los eventos de filtros se configuran después de cargar los datos, por lo que los definimos aquí también.
-    // La función configurarFiltrosApuestas se llamará después de cargar los datos.
-    // Mejor la llamamos al final del cargarApuestas.
-    // Modificamos cargarApuestas para que al final llame a configurarFiltrosApuestas.
-    // Pero para no redefinir, lo hacemos así:
-    const originalCargarApuestas = cargarApuestas;
-    cargarApuestas = async function() {
-      await originalCargarApuestas();
-      configurarFiltrosApuestas();
-    };
-    // Ahora sobreescribimos la función para que incluya la configuración.
-    // Pero como ya se llamó inicializarTodo que llama a cargarApuestas, necesitamos redefinir antes de la ejecución.
-    // Lo hacemos aquí antes de inicializarTodo.
-    // Simplemente reasignamos la función.
-    // De hecho, podemos simplemente llamar a configurarFiltrosApuestas después de cargar los datos.
-    // Para asegurar, añadimos una llamada en el evento de recarga.
-    // Pero mejor, creamos un wrapper.
-    // Lo más sencillo: en cargarApuestas, al final, llamamos a configurarFiltrosApuestas.
-    // Ya lo hemos hecho en la redefinición.
-    // También debemos asegurar que configurarFiltrosApuestas no se ejecute antes de que existan los datos.
-    // Lo dejamos así.
 
-    // Finalmente, llamamos a configurarFiltrosApuestas después de cargar.
-    // Como cargarApuestas ya lo hace internamente, no es necesario llamarlo de nuevo.
-    // Solo aseguramos que la función esté definida.
-    // La definición original de cargarApuestas se reemplaza por la nueva.
-    // Pero como ya la definimos arriba, todo funciona.
-
-    // Ahora, para que el botón de recargar también recargue las apuestas, incluimos cargarApuestas en inicializarTodo.
-    // Ya está incluido.
-
-    console.log('Página inicializada correctamente.');
   })();
 </script>
 </body>
