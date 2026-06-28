@@ -549,6 +549,22 @@
         font-size: 1.2rem;
       }
     }
+
+    /* Estilos para el bloque "En vivo ahora" (igual que en la página de ejemplo) */
+    .bloque {
+      background: var(--tarjeta);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+      box-shadow: var(--sombra);
+    }
+    .bloque h2 {
+      margin: 0 0 10px;
+      color: #0b3a8f;
+      font-size: 1.1rem;
+    }
   </style>
 </head>
 <body>
@@ -562,6 +578,12 @@
     </div>
     <div id="usuarioContainer"></div>
   </header>
+
+  <!-- ===== BLOQUE "EN VIVO AHORA" (DESDE LA API) ===== -->
+  <div class='bloque' id='bloque-en-vivo' style='margin-bottom: 16px;'>
+    <h2>⚽ En vivo ahora</h2>
+    <div id='widget-en-vivo'><p style='color:#64748b; font-size:13px;'>Cargando...</p></div>
+  </div>
 
   <!-- PESTAÑAS -->
   <div class="tabs" id="tabsContainer">
@@ -583,7 +605,7 @@
     <div id="tablaContainer"></div>
   </section>
 
-  <!-- SECCIÓN RECLAMOS (AGREGADA) -->
+  <!-- SECCIÓN RECLAMOS -->
   <section class="seccion-reclamos">
     <h2>¿Tienes algún reclamo?</h2>
     <p></p>
@@ -751,7 +773,7 @@
     }
 
     // ================================================================
-    // 2. TRADUCCIONES Y BANDERAS (para el fixture)
+    // 2. TRADUCCIONES Y BANDERAS (para el fixture y el widget en vivo)
     // ================================================================
     const traducciones = {
       "Mexico": "México", "South Korea": "Corea del Sur", "Korea Republic": "Corea del Sur",
@@ -1171,7 +1193,115 @@
     }
 
     // ================================================================
-    // 5. FLUJO PRINCIPAL Y PESTAÑAS
+    // 5. WIDGET "EN VIVO AHORA" (desde la API)
+    // ================================================================
+    function obtenerPartidosEnVivo(todos) {
+      // Filtramos partidos que tienen marcador y no están terminados (en vivo)
+      const vivos = todos.filter(p => {
+        const finished = p.finished === 'TRUE' || p.finished === true;
+        const tieneMarcador = (p.home_score !== undefined && p.home_score !== null && p.home_score !== '') &&
+                              (p.away_score !== undefined && p.away_score !== null && p.away_score !== '');
+        return !finished && tieneMarcador;
+      });
+      // Ordenamos por id (para tener un orden consistente)
+      vivos.sort((a, b) => Number(a.id) - Number(b.id));
+
+      // Filtramos finalizados (con marcador) y los ordenamos por id descendente (último primero)
+      const terminados = todos.filter(p => {
+        const finished = p.finished === 'TRUE' || p.finished === true;
+        const tieneMarcador = (p.home_score !== undefined && p.home_score !== null && p.home_score !== '') &&
+                              (p.away_score !== undefined && p.away_score !== null && p.away_score !== '');
+        return finished && tieneMarcador;
+      });
+      terminados.sort((a, b) => Number(b.id) - Number(a.id));
+
+      // Devolvemos los vivos, y si no hay, el último terminado (si existe)
+      if (vivos.length > 0) return { vivos, ultimoTerminado: null };
+      if (terminados.length > 0) return { vivos: [], ultimoTerminado: terminados[0] };
+      return { vivos: [], ultimoTerminado: null };
+    }
+
+    function renderWidgetEnVivo(partidos) {
+      const contenedor = document.getElementById('widget-en-vivo');
+      if (!contenedor) return;
+
+      const { vivos, ultimoTerminado } = obtenerPartidosEnVivo(partidos);
+
+      // Función para generar la tarjeta de un partido
+      function tarjetaPartido(p, enVivo) {
+        const local = traducciones[p.home_team_name_en] || p.home_team_name_en || 'TBD';
+        const visita = traducciones[p.away_team_name_en] || p.away_team_name_en || 'TBD';
+        const golL = p.home_score !== undefined && p.home_score !== null ? p.home_score : '–';
+        const golV = p.away_score !== undefined && p.away_score !== null ? p.away_score : '–';
+        const color = enVivo ? "#0f7a46" : "#64748b";
+        const fondo = enVivo ? "linear-gradient(135deg, #ecfdf5, #f0fdf4)" : "#f8fafc";
+        const badge = enVivo
+          ? '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>'
+          : '<span style="background:#e2e8f0;color:#475569;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">Finalizado</span>';
+
+        const banderaLocal = obtenerHtmlConBandera(local);
+        const banderaVisita = obtenerHtmlConBandera(visita);
+
+        return `
+          <div style="
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid ${color};
+            background: ${fondo};
+            font-family: 'Segoe UI', sans-serif;
+            margin-bottom: 10px;
+          ">
+            <div style="text-align:right;">
+              <span style="font-weight:700; font-size:15px; color:#0f172a;">${banderaLocal} ${local}</span>
+            </div>
+            <div style="text-align:center;">
+              <div style="font-size:28px; font-weight:800; color:${color}; letter-spacing:4px; line-height:1;">
+                ${golL} - ${golV}
+              </div>
+              <div style="margin-top:5px;">${badge}</div>
+            </div>
+            <div style="text-align:left;">
+              <span style="font-weight:700; font-size:15px; color:#0f172a;">${banderaVisita} ${visita}</span>
+            </div>
+          </div>`;
+      }
+
+      let html = '';
+      if (vivos.length > 0) {
+        vivos.forEach(p => { html += tarjetaPartido(p, true); });
+      } else if (ultimoTerminado) {
+        html = tarjetaPartido(ultimoTerminado, false);
+      } else {
+        html = '<p style="color:#64748b; font-size:13px; margin:0;">No hay partidos disponibles aún.</p>';
+      }
+      contenedor.innerHTML = html;
+    }
+
+    async function actualizarWidgetEnVivo() {
+      try {
+        const todos = await obtenerDatosAPI();
+        if (todos && todos.length > 0) {
+          renderWidgetEnVivo(todos);
+        } else {
+          document.getElementById('widget-en-vivo').innerHTML =
+            '<p style="color:#64748b; font-size:13px; margin:0;">No se encontraron partidos.</p>';
+        }
+      } catch (error) {
+        document.getElementById('widget-en-vivo').innerHTML =
+          '<p style="color:#ef4444; font-size:13px; margin:0;">Error al cargar el marcador en vivo.</p>';
+        console.error('Error en actualizarWidgetEnVivo:', error);
+      }
+    }
+
+    // Configurar actualización automática cada 30 segundos
+    setInterval(actualizarWidgetEnVivo, 30000);
+
+    // ================================================================
+    // 6. FLUJO PRINCIPAL Y PESTAÑAS
     // ================================================================
     async function cargarFixture() {
       const estadoDiv = document.getElementById('estadoCargaFixture');
@@ -1238,6 +1368,7 @@
     // Inicializar todo
     async function inicializarTodo() {
       await Promise.all([cargarFixture(), cargarTabla()]);
+      await actualizarWidgetEnVivo(); // Cargar el widget en vivo
     }
 
     // Mecanismo de pestañas
@@ -1260,7 +1391,7 @@
     }
 
     // ================================================================
-    // 6. INICIO
+    // 7. INICIO
     // ================================================================
     iniciarSistemaUsuario();
     setupTabs();
