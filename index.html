@@ -619,7 +619,7 @@
 <script>
   (function() {
     // ================================================================
-    // 1. SISTEMA DE USUARIO Y VISITAS (CON INVITADO REGISTRANDO VISITAS)
+    // 1. SISTEMA DE USUARIO Y VISITAS
     // ================================================================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-XI-wqSxdXUhDbRw0mGI_7vA29pfB92PY1KhqsyFFTmydCBQWY39ccQzo_6xWtbVTwg/exec';
     const STORAGE_KEY = 'usuario_actual_polla_mundial';
@@ -662,15 +662,14 @@
 
     async function registrarVisita(participante) {
       if (!participante) return;
-      const nombreParaRegistro = participante;
       try {
         await fetch(SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ participante: nombreParaRegistro })
+          body: JSON.stringify({ participante: participante })
         });
-        console.log(`✅ Visita registrada para: ${nombreParaRegistro}`);
+        console.log(`✅ Visita registrada para: ${participante}`);
       } catch (err) {
         console.error('❌ Error al registrar visita:', err);
       }
@@ -765,15 +764,13 @@
         mostrarUsuarioActual(usuarioGuardado);
         registrarVisita(usuarioGuardado);
       } else {
-        if (usuarioGuardado) {
-          localStorage.removeItem(STORAGE_KEY);
-        }
+        if (usuarioGuardado) localStorage.removeItem(STORAGE_KEY);
         mostrarModal();
       }
     }
 
     // ================================================================
-    // 2. TRADUCCIONES Y BANDERAS (para el fixture y el widget en vivo)
+    // 2. TRADUCCIONES Y BANDERAS
     // ================================================================
     const traducciones = {
       "Mexico": "México", "South Korea": "Corea del Sur", "Korea Republic": "Corea del Sur",
@@ -824,7 +821,7 @@
     }
 
     // ================================================================
-    // 3. FUNCIONES PARA EL FIXTURE – SOLO HASTA CUARTOS
+    // 3. FUNCIONES PARA EL FIXTURE
     // ================================================================
     const API_URL = "https://worldcup26.ir/get/games";
 
@@ -841,16 +838,13 @@
     }
 
     function organizarPartidos(todos) {
-      // Solo incluimos rondas hasta cuartos de final
       const tiposKnockout = ['r32', 'r16', 'qf'];
       const knockouts = todos.filter(p => tiposKnockout.includes(p.type));
-
       const porTipo = {};
       knockouts.forEach(p => {
         if (!porTipo[p.type]) porTipo[p.type] = [];
         porTipo[p.type].push(p);
       });
-
       const ordenTipos = ['r32', 'r16', 'qf'];
       const resultado = {};
       ordenTipos.forEach(tipo => {
@@ -869,12 +863,7 @@
       if (!container) return;
       container.innerHTML = '';
 
-      const titulos = {
-        'r32': '16avos',
-        'r16': 'Octavos',
-        'qf': 'Cuartos'
-      };
-
+      const titulos = { 'r32': '16avos', 'r16': 'Octavos', 'qf': 'Cuartos' };
       const tipos = ['r32', 'r16', 'qf'];
 
       tipos.forEach((tipo) => {
@@ -958,7 +947,6 @@
         container.appendChild(columna);
       });
 
-      // Ajuste de ancho (sin cambios)
       function ajustarAnchos() {
         const columnas = container.querySelectorAll('.ronda');
         columnas.forEach(columna => {
@@ -991,7 +979,7 @@
     }
 
     // ================================================================
-    // 4. FUNCIONES PARA LA TABLA DE POSICIONES (sin cambios)
+    // 4. FUNCIONES PARA LA TABLA DE POSICIONES
     // ================================================================
     const SHEET_ID = "1YQLmxRkQmPnFeADo07s5AfmrnqT_9G10tuATr4v07yM";
     const SHEET_NAME = "Tabla dinámica 6";
@@ -999,28 +987,18 @@
 
     async function obtenerDatosTabla() {
       try {
-        console.log('Intentando cargar desde la hoja:', SHEET_NAME);
         const response = await fetch(SHEET_URL, { 
           cache: 'no-store',
-          headers: { 
-            'Accept': 'text/csv, application/csv, text/plain'
-          }
+          headers: { 'Accept': 'text/csv, application/csv, text/plain' }
         });
-        
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status} - ${response.statusText}`);
-        }
-        
+        if (!response.ok) throw new Error(`HTTP ${response.status} - ${response.statusText}`);
         const csvText = await response.text();
-        
         if (csvText.trim().startsWith('<!DOCTYPE') || csvText.trim().startsWith('<html')) {
           throw new Error(`La hoja "${SHEET_NAME}" no es pública o no existe.`);
         }
-        
         if (!csvText || csvText.trim() === '') {
           throw new Error(`La hoja "${SHEET_NAME}" está vacía.`);
         }
-        
         return csvText;
       } catch (error) {
         console.error("Error al obtener CSV:", error);
@@ -1032,7 +1010,6 @@
       const lines = [];
       let currentLine = '';
       let insideQuotes = false;
-      
       for (let i = 0; i < csv.length; i++) {
         const char = csv[i];
         if (char === '"') {
@@ -1044,14 +1021,9 @@
         }
         currentLine += char;
       }
-      if (currentLine.trim() !== '') {
-        lines.push(currentLine.trim());
-      }
+      if (currentLine.trim() !== '') lines.push(currentLine.trim());
 
-      if (lines.length < 2) {
-        console.warn('CSV con pocas líneas:', lines);
-        return [];
-      }
+      if (lines.length < 2) return [];
 
       function parseLine(line) {
         const values = [];
@@ -1074,7 +1046,6 @@
 
       const headerLine = lines[0];
       const headers = parseLine(headerLine).map(h => h.replace(/^"|"$/g, '').trim());
-      
       const data = [];
       for (let i = 1; i < lines.length; i++) {
         const values = parseLine(lines[i]);
@@ -1087,13 +1058,11 @@
         });
         data.push(row);
       }
-      
       return data;
     }
 
     function ordenarParticipantes(data) {
       if (!data || data.length === 0) return [];
-      
       const headers = Object.keys(data[0] || {});
       const colParticipante = headers.find(h => /participante|nombre|jugador|participants/i.test(h)) || headers[0];
       const colPuntos = headers.find(h => /puntos|puntaje|pts|points/i.test(h)) || headers[1];
@@ -1101,31 +1070,18 @@
       const colExactos = headers.find(h => /exactos|exact|precise/i.test(h)) || headers[3];
       const colInscripcion = headers.find(h => /inscripcion|insc|order|registro/i.test(h)) || headers[4];
 
-      console.log('Columnas detectadas:', { colParticipante, colPuntos, colAciertos, colExactos, colInscripcion });
-
       const participantes = data.map(row => {
         const clean = (val) => {
-          if (typeof val === 'string') {
-            return val.replace(/^"|"$/g, '').trim();
-          }
+          if (typeof val === 'string') return val.replace(/^"|"$/g, '').trim();
           return val;
         };
-        
         const nombre = clean(row[colParticipante]);
         if (!nombre || nombre === '' || nombre === 'Participantes') return null;
-        
         const puntos = parseFloat(clean(row[colPuntos]).replace(',', '.')) || 0;
         const aciertos = parseFloat(clean(row[colAciertos]).replace(',', '.')) || 0;
         const exactos = parseFloat(clean(row[colExactos]).replace(',', '.')) || 0;
         const inscripcion = parseFloat(clean(row[colInscripcion]).replace(',', '.')) || 0;
-        
-        return {
-          nombre: nombre,
-          puntos,
-          aciertos,
-          exactos,
-          inscripcion
-        };
+        return { nombre, puntos, aciertos, exactos, inscripcion };
       }).filter(p => p !== null);
 
       participantes.sort((a, b) => {
@@ -1134,14 +1090,12 @@
         if (a.exactos !== b.exactos) return b.exactos - a.exactos;
         return a.inscripcion - b.inscripcion;
       });
-
       return participantes.slice(0, 11);
     }
 
     function renderizarTabla(participantes) {
       const container = document.getElementById('tablaContainer');
       if (!container) return;
-      
       if (!participantes || participantes.length === 0) {
         container.innerHTML = `<p style="padding: 20px; text-align: center; color: #64748b;">No se encontraron participantes en la hoja "${SHEET_NAME}".</p>`;
         return;
@@ -1155,7 +1109,6 @@
       `;
 
       let html = leyendaHtml;
-
       html += `<table class="tabla-posiciones">
         <thead>
           <tr>
@@ -1168,16 +1121,9 @@
           </tr>
         </thead>
         <tbody>`;
-
       participantes.forEach((p, index) => {
         const pos = index + 1;
-        let clasePosicion = '';
-        if (pos <= 6) {
-          clasePosicion = 'clasifica';
-        } else {
-          clasePosicion = 'descalifica';
-        }
-
+        let clasePosicion = (pos <= 6) ? 'clasifica' : 'descalifica';
         html += `<tr>
           <td class="posicion-celda ${clasePosicion}">${pos}</td>
           <td class="col-participante">${p.nombre}</td>
@@ -1187,23 +1133,20 @@
           <td>${p.inscripcion}</td>
         </tr>`;
       });
-
       html += `</tbody></table>`;
       container.innerHTML = html;
     }
 
     // ================================================================
-    // 5. WIDGET "EN VIVO AHORA" (PARTIDOS EN CURSO)
+    // 5. WIDGET "EN VIVO AHORA" – FILTRA POR time_elapsed === "live"
     // ================================================================
     function obtenerPartidosEnVivo(todos) {
-      // Filtramos partidos que NO están terminados y tienen marcador
+      // Solo partidos con time_elapsed === "live"
       const vivos = todos.filter(p => {
-        const finished = p.finished === 'TRUE' || p.finished === true;
-        const tieneMarcador = (p.home_score !== undefined && p.home_score !== null && p.home_score !== '') &&
-                              (p.away_score !== undefined && p.away_score !== null && p.away_score !== '');
-        return !finished && tieneMarcador;
+        const elapsed = p.time_elapsed || '';
+        return elapsed.toLowerCase() === 'live';
       });
-      // Ordenamos por id
+      // Ordenar por id
       vivos.sort((a, b) => Number(a.id) - Number(b.id));
       return vivos;
     }
@@ -1222,8 +1165,8 @@
       function tarjetaPartido(p) {
         const local = traducciones[p.home_team_name_en] || p.home_team_name_en || 'TBD';
         const visita = traducciones[p.away_team_name_en] || p.away_team_name_en || 'TBD';
-        const golL = p.home_score;
-        const golV = p.away_score;
+        const golL = p.home_score !== undefined && p.home_score !== null ? p.home_score : '–';
+        const golV = p.away_score !== undefined && p.away_score !== null ? p.away_score : '–';
         const color = "#0f7a46";
         const fondo = "linear-gradient(135deg, #ecfdf5, #f0fdf4)";
         const badge = '<span style="background:#0f7a46;color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;">● EN VIVO</span>';
@@ -1280,7 +1223,7 @@
       }
     }
 
-    // Configurar actualización automática cada 30 segundos
+    // Actualizar cada 30 segundos
     setInterval(actualizarWidgetEnVivo, 30000);
 
     // ================================================================
@@ -1323,16 +1266,9 @@
 
       try {
         const csv = await obtenerDatosTabla();
-        console.log('CSV obtenido (primeros 200 caracteres):', csv.substring(0, 200));
-        
         const data = parseCSV(csv);
-        console.log('Datos parseados (cantidad de filas):', data.length);
-        
         if (!data || data.length === 0) throw new Error(`No se encontraron datos.`);
-        
         const top11 = ordenarParticipantes(data);
-        console.log('Top 11 ordenados:', top11);
-        
         estadoDiv.textContent = `✅ ${top11.length} participantes cargados.`;
         estadoDiv.className = 'estado-carga exito';
         renderizarTabla(top11);
@@ -1348,20 +1284,17 @@
       }
     }
 
-    // Inicializar todo
     async function inicializarTodo() {
       await Promise.all([cargarFixture(), cargarTabla()]);
       await actualizarWidgetEnVivo();
     }
 
-    // Mecanismo de pestañas
     function setupTabs() {
       const tabs = document.querySelectorAll('.tab-btn');
       const panels = {
         tabFixture: document.getElementById('tabFixture'),
         tabTabla: document.getElementById('tabTabla')
       };
-
       tabs.forEach(btn => {
         btn.addEventListener('click', function() {
           tabs.forEach(b => b.classList.remove('activa'));
